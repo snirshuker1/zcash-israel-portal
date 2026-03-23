@@ -1,26 +1,102 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Shadcn neutral palette */
+  --color-background: #ffffff;
+  --color-surface: #fafafa;
+  --color-border: #e4e4e7;
+
+  /* Text hierarchy */
+  --color-fg-primary: #09090b;
+  --color-fg-secondary: #71717a;
+  --color-fg-muted: #a1a1aa;
+
+  /* Zcash single accent */
+  --color-zcash: #f3b132;
+  --color-zcash-hover: #e09b1f;
+  --color-zcash-subtle: #fffbeb;
+  --color-zcash-border: #fde68a;
+
+  /* Dark / terminal sections */
+  --color-terminal: #09090b;
+  --color-terminal-surface: #141414;
+  --color-terminal-border: #27272a;
+  --color-terminal-text: #e4e4e7;
+  --color-terminal-muted: #52525b;
+
+  /* Status */
+  --color-green: #22c55e;
+  --color-purple: #8b5cf6;
+
+  /* Fonts */
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: var(--font-mono), "JetBrains Mono", monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background-color: #ffffff;
+  color: #09090b;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #ffffff;
+  color: #09090b;
+  font-family: "Inter", system-ui, sans-serif;
+  line-height: 1.6;
+}
+
+.font-data {
+  font-family: var(--font-mono), monospace;
+}
+
+/* Subtle amber glow for accent elements */
+.glow-amber {
+  box-shadow: 0 0 0 3px rgba(243, 177, 50, 0.15);
+}
+
+/* Pulse for live indicators */
+@keyframes pulse-amber {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.pulse-amber {
+  animation: pulse-amber 2s ease-in-out infinite;
+}
+
+/* Terminal cursor blink */
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.cursor-blink {
+  animation: cursor-blink 1.2s step-end infinite;
+}
+
+/* Scroll fade-in utility */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up {
+  animation: fade-up 0.6s ease forwards;
+}
+
+/* Clean scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #fafafa; }
+::-webkit-scrollbar-thumb { background: #e4e4e7; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #f3b132; }
+
+/* Selection */
+::selection {
+  background-color: rgba(243, 177, 50, 0.2);
+  color: #09090b;
 }
