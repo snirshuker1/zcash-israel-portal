@@ -1,26 +1,33 @@
 import { NextResponse } from "next/server";
 
-export async function GET() {
+const PERIOD_LIMIT: Record<string, number> = {
+  "1w": 7,
+  "1m": 30,
+  "3m": 90,
+  "1y": 365,
+  "all": 365, // Blockchair practical max for daily aggregates
+};
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const period = searchParams.get("period") ?? "1y";
+  const limit = PERIOD_LIMIT[period] ?? 365;
+
   try {
-    // Get daily block count for the last 30 days
     const res = await fetch(
-      "https://api.blockchair.com/zcash/blocks?a=date,count()&limit=30&s=date(desc)",
+      `https://api.blockchair.com/zcash/blocks?a=date,count()&limit=${limit}&s=date(desc)`,
       { next: { revalidate: 3600 } }
     );
 
     if (!res.ok) throw new Error(`Blockchair blocks ${res.status}`);
 
     const json = await res.json();
-
-    // Blockchair returns newest first — reverse for chart chronology
-    const data = (
-      json.data as { date: string; "count()": number }[]
-    )
+    const data = (json.data as { date: string; "count()": number }[])
       .reverse()
       .map((row) => ({
         date: new Date(row.date).toLocaleDateString("en-US", {
           month: "short",
-          day: "numeric",
+          ...(period === "1w" || period === "1m" ? { day: "numeric" } : { year: "numeric" }),
         }),
         blocks: row["count()"],
       }));

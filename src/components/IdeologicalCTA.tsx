@@ -5,7 +5,7 @@ import { motion, useInView } from "framer-motion";
 import { ArrowUpLeft } from "lucide-react";
 
 const AMBER = "#F3B132";
-const NEAR_INTENTS_URL = "https://near.org/intents";
+const NEAR_INTENTS_URL = "https://near-intents.org/?from=USDT&to=ZEC";
 
 function Ltr({ children, mono = false }: { children: React.ReactNode; mono?: boolean }) {
   return (
@@ -29,6 +29,7 @@ export default function IdeologicalCTA() {
 
         {/* Protocol tag */}
         <motion.div
+          suppressHydrationWarning
           initial={{ opacity: 0, y: 12 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.4 }}
@@ -36,7 +37,7 @@ export default function IdeologicalCTA() {
             display: "inline-flex",
             alignItems: "center",
             gap: 6,
-            fontSize: "0.65rem",
+            fontSize: "0.72rem",
             letterSpacing: "0.14em",
             color: "#92400e",
             fontFamily: "var(--font-mono), monospace",
@@ -52,12 +53,13 @@ export default function IdeologicalCTA() {
 
         {/* Statement */}
         <motion.p
+          suppressHydrationWarning
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.1 }}
           style={{
-            fontSize: "clamp(1.35rem, 4vw, 1.9rem)",
-            fontWeight: 600,
+            fontSize: "clamp(1.8rem, 4vw, 2.4rem)",
+            fontWeight: 700,
             color: "#09090b",
             lineHeight: 1.55,
             marginBottom: 36,
@@ -75,17 +77,18 @@ export default function IdeologicalCTA() {
 
         {/* Sub-copy */}
         <motion.p
+          suppressHydrationWarning
           initial={{ opacity: 0, y: 12 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.2 }}
           style={{
-            fontSize: "0.95rem",
+            fontSize: "1.2rem",
             color: "#92400e",
-            lineHeight: 1.65,
+            lineHeight: 1.75,
             marginBottom: 40,
             maxWidth: 560,
             margin: "0 auto 40px",
-            fontFamily: "Inter, system-ui, sans-serif",
+            fontFamily: "var(--font-sans), system-ui, sans-serif",
           }}
         >
           כסף פיאט מאבד ערך. בנקים מוקפאים. פרטיות נשחקת.{" "}
@@ -95,6 +98,7 @@ export default function IdeologicalCTA() {
 
         {/* CTA button */}
         <motion.div
+          suppressHydrationWarning
           initial={{ opacity: 0, y: 12 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.3 }}
@@ -113,7 +117,7 @@ export default function IdeologicalCTA() {
               background: "#09090b",
               color: "#ffffff",
               fontWeight: 600,
-              fontSize: "1rem",
+              fontSize: "1.1rem",
               fontFamily: "Inter, system-ui, sans-serif",
               textDecoration: "none",
               transition: "transform 0.15s, box-shadow 0.15s",
@@ -148,7 +152,7 @@ export default function IdeologicalCTA() {
             }}
           />
 
-          <p style={{ fontSize: "0.75rem", color: "#a1a1aa", fontFamily: "var(--font-mono), monospace", letterSpacing: "0.06em" }}>
+          <p style={{ fontSize: "0.83rem", color: "#a1a1aa", fontFamily: "var(--font-mono), monospace", letterSpacing: "0.06em" }}>
             <Ltr>// protocol-level privacy · 21M cap · no trusted setup</Ltr>
           </p>
         </motion.div>

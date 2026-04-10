@@ -80,6 +80,12 @@ body {
   animation: cursor-blink 1.2s step-end infinite;
 }
 
+/* Loading screen code rain */
+@keyframes codeRain {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
 /* Scroll fade-in utility */
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(24px); }
@@ -87,6 +93,48 @@ body {
 }
 .fade-up {
   animation: fade-up 0.6s ease forwards;
+}
+
+/* Why Zcash button — rotating conic border */
+@keyframes border-rotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+.border-spin {
+  animation: border-rotate 3.5s linear infinite;
+}
+.group:hover .border-spin {
+  animation-duration: 1.6s;
+}
+
+/* Scan line sweep */
+@keyframes scan-sweep {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  6%   { opacity: 0.9; }
+  92%  { opacity: 0.5; }
+  100% { transform: translateY(2000%); opacity: 0; }
+}
+.scan-line {
+  animation: scan-sweep 4.5s ease-in-out infinite;
+}
+.group:hover .scan-line {
+  animation-duration: 2.2s;
+}
+
+/* Particles floating up */
+@keyframes float-up {
+  0%   { transform: translateY(0) scale(1);   opacity: 0.75; }
+  80%  { opacity: 0.3; }
+  100% { transform: translateY(-52px) scale(0); opacity: 0; }
+}
+
+/* Why Zcash outer glow pulse */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(243,177,50,0.12), 0 0 18px rgba(243,177,50,0.14), 0 4px 20px rgba(0,0,0,0.3); }
+  50%       { box-shadow: 0 0 0 1px rgba(243,177,50,0.22), 0 0 32px rgba(243,177,50,0.28), 0 4px 24px rgba(0,0,0,0.35); }
+}
+.glow-pulse {
+  animation: glow-pulse 2.8s ease-in-out infinite;
 }
 
 /* Clean scrollbar */

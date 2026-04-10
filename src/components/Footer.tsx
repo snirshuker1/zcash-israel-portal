@@ -41,23 +41,17 @@ export default function Footer() {
               }}
               dir="ltr"
             >
-              <span
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: "50%",
-                  backgroundColor: AMBER,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "0.85rem",
-                  fontWeight: 700,
-                  color: "#09090b",
-                  fontFamily: "var(--font-mono), monospace",
-                }}
-              >
-                ◎
-              </span>
+              <svg width={28} height={28} viewBox="0 0 493.3 490.2" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path
+                  d="m245.4 20c-124.3 0-225.4 101.1-225.4 225.4s101.1 225.4 225.4 225.4 225.4-101.1 225.4-225.4-101.1-225.4-225.4-225.4zm0 413.6c-103.8 0-188.2-84.4-188.2-188.2s84.4-188.2 188.2-188.2 188.2 84.4 188.2 188.2-84.4 188.2-188.2 188.2z"
+                  fill="#e4e4e7"
+                />
+                <circle cx="245.4" cy="245.4" r="177.6" fill={AMBER} />
+                <path
+                  d="m165 315.5v34.4h61.5v37.7h37.8v-37.7h61.5v-45.5h-95.4l95.4-129.4v-34.4h-61.5v-37.6h-37.8v37.6h-61.5v45.6h95.4z"
+                  fill="#09090b"
+                />
+              </svg>
               <span
                 style={{
                   fontFamily: "var(--font-mono), monospace",
@@ -83,7 +77,6 @@ export default function Footer() {
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {[
-                  { label: "ECC (Electric Coin Co.)", href: "https://electriccoin.co" },
                   { label: "Zcash Foundation", href: "https://zfnd.org" },
                   { label: "Zcash Community Forum", href: "https://forum.zcashcommunity.com" },
                 ].map((link) => (
@@ -114,9 +107,9 @@ export default function Footer() {
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {[
-                  { label: "Zashi (Mobile)", href: "https://zashi.app" },
+                  { label: "Zodl (Mobile)", href: "https://zodl.app" },
                   { label: "Edge Wallet", href: "https://edge.app" },
-                  { label: "Near Intents (Buy ZEC)", href: "https://near.org/intents" },
+                  { label: "Near Intents (Buy ZEC)", href: "https://near-intents.org/?from=USDT&to=ZEC" },
                 ].map((link) => (
                   <a
                     key={link.href}

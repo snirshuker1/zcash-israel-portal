@@ -65,7 +65,7 @@ export default function ShieldedTxSVG() {
         borderRadius: 16,
         overflow: "hidden",
         width: "100%",
-        maxWidth: 480,
+        maxWidth: 560,
         fontFamily: "var(--font-mono), 'JetBrains Mono', monospace",
       }}
     >
@@ -86,18 +86,18 @@ export default function ShieldedTxSVG() {
           <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#f59e0b", display: "block" }} />
           <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#22c55e", display: "block" }} />
         </div>
-        <span style={{ color: "#52525b", fontSize: "0.65rem", letterSpacing: "0.1em" }}>
+        <span style={{ color: "#52525b", fontSize: "0.75rem", letterSpacing: "0.1em" }}>
           zcash · shield-transaction.ts
         </span>
-        <span style={{ color: AMBER, fontSize: "0.65rem" }}>◎</span>
+        <span style={{ color: AMBER, fontSize: "0.75rem" }}>◎</span>
       </div>
 
       {/* Body */}
-      <div style={{ padding: "20px 18px", display: "flex", flexDirection: "column", gap: 16 }} dir="ltr">
+      <div style={{ padding: "26px 22px", display: "flex", flexDirection: "column", gap: 18 }} dir="ltr">
 
         {/* FROM */}
         <div>
-          <div style={{ color: "#52525b", fontSize: "0.6rem", letterSpacing: "0.12em", marginBottom: 6 }}>
+          <div style={{ color: "#52525b", fontSize: "0.7rem", letterSpacing: "0.12em", marginBottom: 6 }}>
             FROM · T-ADDRESS (TRANSPARENT)
           </div>
           <div
@@ -111,15 +111,15 @@ export default function ShieldedTxSVG() {
               gap: 8,
             }}
           >
-            <span style={{ color: "#52525b", fontSize: "0.7rem" }}>t1</span>
-            <span style={{ color: "#a1a1aa", fontSize: "0.72rem", letterSpacing: "0.04em" }}>
+            <span style={{ color: "#52525b", fontSize: "0.82rem" }}>t1</span>
+            <span style={{ color: "#a1a1aa", fontSize: "0.84rem", letterSpacing: "0.04em" }}>
               {phase === 1 ? scrambled : T_ADDR}
               <span style={{ opacity: 0.4 }}>···</span>
             </span>
             <span
               style={{
                 marginLeft: "auto",
-                fontSize: "0.55rem",
+                fontSize: "0.65rem",
                 padding: "2px 6px",
                 borderRadius: 4,
                 background: "rgba(161,161,170,0.1)",
@@ -134,15 +134,15 @@ export default function ShieldedTxSVG() {
 
         {/* Shield arrow + progress */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-          <div style={{ color: "#27272a", fontSize: "0.7rem" }}>↓</div>
+          <div style={{ color: "#27272a", fontSize: "0.82rem" }}>↓</div>
           <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 4 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ color: AMBER, fontSize: "0.6rem", letterSpacing: "0.12em" }}>
+              <span style={{ color: AMBER, fontSize: "0.7rem", letterSpacing: "0.12em" }}>
                 {phase === 3 ? "✓ SHIELDED" : phase >= 1 ? "⏳ SHIELDING..." : "PENDING"}
               </span>
-              <span style={{ color: "#52525b", fontSize: "0.6rem" }}>{progressPct}%</span>
+              <span style={{ color: "#52525b", fontSize: "0.7rem" }}>{progressPct}%</span>
             </div>
-            <div style={{ height: 4, background: "#1a1a1a", borderRadius: 2, overflow: "hidden" }}>
+            <div style={{ height: 5, background: "#1a1a1a", borderRadius: 2, overflow: "hidden" }}>
               <motion.div
                 style={{
                   height: "100%",
@@ -154,12 +154,12 @@ export default function ShieldedTxSVG() {
               />
             </div>
           </div>
-          <div style={{ color: "#27272a", fontSize: "0.7rem" }}>↓</div>
+          <div style={{ color: "#27272a", fontSize: "0.82rem" }}>↓</div>
         </div>
 
         {/* TO */}
         <div>
-          <div style={{ color: "#52525b", fontSize: "0.6rem", letterSpacing: "0.12em", marginBottom: 6 }}>
+          <div style={{ color: "#52525b", fontSize: "0.7rem", letterSpacing: "0.12em", marginBottom: 6 }}>
             TO · Z-ADDRESS (SHIELDED)
           </div>
           <div
@@ -174,15 +174,15 @@ export default function ShieldedTxSVG() {
               transition: "border-color 0.4s",
             }}
           >
-            <span style={{ color: PURPLE, fontSize: "0.7rem" }}>zs</span>
-            <span style={{ color: phase >= 2 ? "#e4e4e7" : "#3a3a3a", fontSize: "0.72rem", letterSpacing: "0.04em", transition: "color 0.6s" }}>
+            <span style={{ color: PURPLE, fontSize: "0.82rem" }}>zs</span>
+            <span style={{ color: phase >= 2 ? "#e4e4e7" : "#3a3a3a", fontSize: "0.84rem", letterSpacing: "0.04em", transition: "color 0.6s" }}>
               {Z_ADDR}
               <span style={{ opacity: 0.4 }}>···</span>
             </span>
             <span
               style={{
                 marginLeft: "auto",
-                fontSize: "0.55rem",
+                fontSize: "0.65rem",
                 padding: "2px 6px",
                 borderRadius: 4,
                 background: phase >= 2 ? "rgba(139,92,246,0.15)" : "transparent",
@@ -217,7 +217,7 @@ export default function ShieldedTxSVG() {
                     display: "flex",
                     alignItems: "center",
                     gap: 8,
-                    fontSize: "0.65rem",
+                    fontSize: "0.75rem",
                   }}
                 >
                   <span style={{ color: step.color }}>✓</span>
@@ -247,7 +247,7 @@ export default function ShieldedTxSVG() {
                 border: `1px solid ${AMBER}40`,
               }}
             >
-              <span style={{ color: AMBER, fontSize: "0.75rem", letterSpacing: "0.12em", fontWeight: 600 }}>
+              <span style={{ color: AMBER, fontSize: "0.85rem", letterSpacing: "0.12em", fontWeight: 600 }}>
                 ◎ PROOF VERIFIED
               </span>
               <motion.span

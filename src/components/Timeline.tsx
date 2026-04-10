@@ -1,225 +1,208 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import ProtocolJourneyModal from "./ProtocolJourneyModal";
 
 const AMBER = "#F3B132";
 
-interface Entry {
-  year: string;
-  titleHe: string;
-  descHe: string;
-  tags: string[];
-  highlight: boolean;
-}
-
-const ENTRIES: Entry[] = [
-  {
-    year: "2013",
-    titleHe: "מקורות אקדמיים",
-    descHe: 'מאמר "Zerocash" מפורסם על ידי חוקרי אוניברסיטת Johns Hopkins — הבסיס המתמטי לפרטיות מוכחת מוגש לקהילה המדעית.',
-    tags: ["Zerocash Paper", "Johns Hopkins", "zk-SNARKs"],
-    highlight: false,
-  },
-  {
-    year: "2016",
-    titleHe: "השקת הפרוטוקול",
-    descHe: "השקת Zcash Mainnet עם טקס MPC (Multi-Party Computation) — ה\"Ceremony\" שיצר את ה-Trusted Setup המקורי. שישה משתתפים, אף אחד לא מחזיק את כל המפתח.",
-    tags: ["Mainnet", "MPC", "Trusted Setup", "Ceremony"],
-    highlight: false,
-  },
-  {
-    year: "2018",
-    titleHe: "שדרוג Sapling",
-    descHe: "קפיצת ביצועים היסטורית — זמן יצירת הוכחת zk-SNARK ירד מ-40 שניות לפחות משנייה. הגנה מלאה הפכה לאפשרית על מכשירים ניידים.",
-    tags: ["Sapling", "Mobile Proofs", "Performance"],
-    highlight: false,
-  },
-  {
-    year: "2022",
-    titleHe: "Halo 2 ו-NU5 — ביטול ה-Trusted Setup",
-    descHe: "אבן הדרך הגדולה ביותר בהיסטוריית הפרוטוקול. הוכחות ZK רקורסיביות מבטלות לצמיתות את הצורך בטקסי Trusted Setup. מה שנדרש 6 אנשים ב-2016 — לא נדרש יותר לעולם.",
-    tags: ["Halo 2", "NU5", "No Trusted Setup", "Orchard", "Recursive ZK"],
-    highlight: true,
-  },
-  {
-    year: "עתיד",
-    titleHe: "PoS ו-ZSA",
-    descHe: "מפת הדרכים כוללת מעבר ל-Proof of Stake ופיתוח Zcash Shielded Assets — בריכה מוגנת עם תמיכה בנכסים מרובים, לא רק ZEC.",
-    tags: ["PoS", "ZSA", "Multi-Asset", "Roadmap"],
-    highlight: false,
-  },
+const ERAS = [
+  { year: "2013", label: "Genesis" },
+  { year: "2016", label: "Sprout" },
+  { year: "2018", label: "Sapling" },
+  { year: "2022", label: "Orchard" },
+  { year: "2026", label: "Future" },
 ];
 
-function Ltr({ children }: { children: React.ReactNode }) {
-  return <span dir="ltr" className="inline-block">{children}</span>;
-}
+export default function Timeline() {
+  const [open, setOpen] = useState(false);
 
-function TimelineCard({ entry, index }: { entry: Entry; index: number }) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
+  // Allow the navbar (or any other caller) to open the modal via a custom event
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("open-protocol-journey", handler);
+    return () => window.removeEventListener("open-protocol-journey", handler);
+  }, []);
 
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.55, delay: 0.1 }}
-      className="relative flex gap-6 items-start"
-      dir="rtl"
-    >
-      {/* Year + dot */}
-      <div className="flex flex-col items-center flex-shrink-0" style={{ width: 64 }}>
-        <div
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: "50%",
-            background: entry.highlight ? AMBER : "#ffffff",
-            border: `2px solid ${entry.highlight ? AMBER : "#e4e4e7"}`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1,
-            boxShadow: entry.highlight ? `0 0 0 6px rgba(243,177,50,0.12)` : "none",
-          }}
-        >
-          <span
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: "50%",
-              background: entry.highlight ? "#09090b" : "#e4e4e7",
-              display: "block",
-            }}
-          />
-        </div>
-        <span
-          style={{
-            fontFamily: "var(--font-mono), monospace",
-            fontSize: "0.65rem",
-            color: entry.highlight ? AMBER : "#a1a1aa",
-            marginTop: 6,
-            letterSpacing: "0.05em",
-          }}
-        >
-          {entry.year}
-        </span>
-      </div>
+    <>
+      {open && <ProtocolJourneyModal onClose={() => setOpen(false)} />}
 
-      {/* Card */}
-      <div
-        style={{
-          flex: 1,
-          background: "#ffffff",
-          border: `1px solid ${entry.highlight ? AMBER + "40" : "#e4e4e7"}`,
-          borderRadius: 12,
-          padding: "16px 20px",
-          marginBottom: 8,
-          boxShadow: entry.highlight ? `0 4px 24px rgba(243,177,50,0.08)` : "none",
-        }}
+      <section
+        id="timeline"
+        style={{ backgroundColor: "#ffffff", padding: "96px 24px" }}
       >
-        {entry.highlight && (
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 4,
-              fontSize: "0.6rem",
-              letterSpacing: "0.1em",
-              color: AMBER,
-              fontFamily: "var(--font-mono), monospace",
-              marginBottom: 8,
-              padding: "3px 8px",
-              background: "rgba(243,177,50,0.08)",
-              borderRadius: 4,
-            }}
+        <div style={{ maxWidth: 800, margin: "0 auto" }}>
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.55 }}
           >
-            <span>★</span> MILESTONE
-          </div>
-        )}
-        <h3
-          style={{
-            fontSize: "1rem",
-            fontWeight: 600,
-            color: "#09090b",
-            marginBottom: 8,
-            lineHeight: 1.4,
-            fontFamily: "Inter, system-ui, sans-serif",
-          }}
-        >
-          {entry.titleHe.split(/(Halo 2|NU5|Trusted Setup|MPC|Sapling|PoS|ZSA|zk-SNARK|ZK)/g).map((part, i) =>
-            ["Halo 2", "NU5", "Trusted Setup", "MPC", "Sapling", "PoS", "ZSA", "zk-SNARK", "ZK"].includes(part)
-              ? <Ltr key={i}>{part}</Ltr>
-              : <span key={i}>{part}</span>
-          )}
-        </h3>
-        <p style={{ fontSize: "0.875rem", color: "#71717a", lineHeight: 1.65, marginBottom: 12, fontFamily: "Inter, system-ui, sans-serif" }}>
-          {entry.descHe}
-        </p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }} dir="ltr">
-          {entry.tags.map((tag) => (
-            <span
-              key={tag}
+            {/* ── Invite card ──────────────────────────────────────── */}
+            <div
               style={{
-                fontSize: "0.6rem",
-                padding: "3px 8px",
-                borderRadius: 4,
-                background: "#fafafa",
-                border: "1px solid #e4e4e7",
-                color: "#71717a",
-                fontFamily: "var(--font-mono), monospace",
-                letterSpacing: "0.05em",
+                background: "#09090B",
+                border: "1px solid #1e1e1e",
+                borderRadius: 20,
+                padding: "48px 52px",
+                position: "relative",
+                overflow: "hidden",
               }}
             >
-              {tag}
-            </span>
-          ))}
-        </div>
-      </div>
-    </motion.div>
-  );
-}
+              {/* Ambient amber glow top-right */}
+              <div
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  top: -80,
+                  right: -80,
+                  width: 240,
+                  height: 240,
+                  borderRadius: "50%",
+                  background: `radial-gradient(circle, ${AMBER}18 0%, transparent 70%)`,
+                  pointerEvents: "none",
+                }}
+              />
 
-export default function Timeline() {
-  return (
-    <section id="timeline" style={{ backgroundColor: "#ffffff", padding: "96px 0" }}>
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 24px" }}>
+              {/* Header */}
+              <div dir="rtl">
+                <p
+                  style={{
+                    fontFamily: "var(--font-mono), monospace",
+                    fontSize: "0.7rem",
+                    letterSpacing: "0.16em",
+                    color: AMBER,
+                    marginBottom: 16,
+                  }}
+                >
+                  // PROTOCOL_EVOLUTION
+                </p>
+                <h2
+                  style={{
+                    fontSize: "clamp(1.8rem, 4vw, 2.6rem)",
+                    fontWeight: 700,
+                    color: "#ffffff",
+                    letterSpacing: "-0.02em",
+                    marginBottom: 14,
+                    fontFamily: "Inter, var(--font-sans), system-ui, sans-serif",
+                    lineHeight: 1.25,
+                  }}
+                >
+                  המסע של הפרוטוקול
+                </h2>
+                <p
+                  style={{
+                    fontSize: "1.05rem",
+                    color: "#555",
+                    lineHeight: 1.7,
+                    marginBottom: 36,
+                    fontFamily: "Inter, var(--font-sans), system-ui, sans-serif",
+                    maxWidth: 520,
+                  }}
+                >
+                  מהוכחה מתמטית בחדרי אוניברסיטה ב-2013, דרך טקסי הצפנה עם אדוארד סנודן, ועד לביטול לצמיתות של ה-
+                  <span dir="ltr" style={{ display: "inline" }}>Trusted Setup</span>
+                  {" "}ב-2022 —{" "}
+                  <span dir="ltr" style={{ display: "inline" }}>11</span>{" "}
+                  פרקים שמגדירים את הריבונות הפיננסית של הדור הבא.
+                </p>
 
-        {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: 64 }} dir="rtl">
-          <p style={{ fontFamily: "var(--font-mono), monospace", fontSize: "0.7rem", letterSpacing: "0.15em", color: AMBER, marginBottom: 12 }}>
-            // PROTOCOL_EVOLUTION
-          </p>
-          <h2 style={{ fontSize: "clamp(1.8rem, 5vw, 2.5rem)", fontWeight: 700, color: "#09090b", letterSpacing: "-0.02em", marginBottom: 12, fontFamily: "Inter, system-ui, sans-serif" }}>
-            ציר הזמן של הפרוטוקול
-          </h2>
-          <p style={{ fontSize: "1rem", color: "#71717a", fontFamily: "Inter, system-ui, sans-serif" }}>
-            מהמאמר האקדמי ב-2013 ועד לביטול ה-<Ltr>Trusted Setup</Ltr> — כל שלב מוכיח מחדש.
-          </p>
-        </div>
+                {/* Mini era strip */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0,
+                    marginBottom: 40,
+                    direction: "ltr",
+                  }}
+                >
+                  {ERAS.map((era, i) => (
+                    <div key={era.year} style={{ display: "flex", alignItems: "center", flex: 1 }}>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
+                        <div
+                          style={{
+                            width: 7,
+                            height: 7,
+                            borderRadius: "50%",
+                            background: AMBER,
+                            opacity: 0.7,
+                            flexShrink: 0,
+                          }}
+                        />
+                        <span
+                          style={{
+                            fontFamily: "var(--font-mono), monospace",
+                            fontSize: "0.6rem",
+                            color: "#333",
+                            letterSpacing: "0.08em",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {era.year}
+                        </span>
+                      </div>
+                      {i < ERAS.length - 1 && (
+                        <div
+                          style={{
+                            flex: 1,
+                            height: 1,
+                            background: `linear-gradient(to right, ${AMBER}40, #1e1e1e)`,
+                            margin: "0 4px",
+                            marginBottom: 14,
+                          }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
 
-        {/* Vertical line + entries */}
-        <div style={{ position: "relative" }}>
-          {/* The vertical spine */}
-          <div
-            style={{
-              position: "absolute",
-              top: 18,
-              bottom: 18,
-              right: 49,
-              width: 1,
-              background: "linear-gradient(to bottom, transparent, #e4e4e7 10%, #e4e4e7 90%, transparent)",
-              zIndex: 0,
-            }}
-          />
-          <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
-            {ENTRIES.map((entry, i) => (
-              <TimelineCard key={i} entry={entry} index={i} />
-            ))}
-          </div>
+                {/* CTA button */}
+                <button
+                  onClick={() => setOpen(true)}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "13px 28px",
+                    borderRadius: 10,
+                    background: AMBER,
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily: "Inter, var(--font-sans), system-ui, sans-serif",
+                    fontWeight: 700,
+                    fontSize: "1rem",
+                    color: "#09090B",
+                    transition: "opacity 0.15s, transform 0.15s",
+                    letterSpacing: "0.01em",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.opacity = "0.88";
+                    (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.opacity = "1";
+                    (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
+                  }}
+                >
+                  <span>פתח את המסע</span>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono), monospace",
+                      fontSize: "0.9rem",
+                      opacity: 0.7,
+                    }}
+                    dir="ltr"
+                  >
+                    ◎ 2013 → 2026+
+                  </span>
+                </button>
+              </div>
+            </div>
+          </motion.div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }

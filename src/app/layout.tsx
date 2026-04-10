@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Heebo, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
-const inter = Inter({
+const heebo = Heebo({
   variable: "--font-sans",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  subsets: ["latin", "hebrew"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -28,7 +28,7 @@ export default function RootLayout({
     <html
       lang="he"
       dir="rtl"
-      className={`${inter.variable} ${jetbrainsMono.variable}`}
+      className={`${heebo.variable} ${jetbrainsMono.variable}`}
     >
       <body className="bg-white text-[#09090B] antialiased">
         <Navbar />
