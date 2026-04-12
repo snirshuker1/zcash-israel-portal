@@ -19,6 +19,11 @@ export const metadata: Metadata = {
   title: "Zcash Israel — הצפן את הכסף שלך",
   description: "פורטל חינוכי לפרוטוקול Zcash — פרטיות מוכחת מתמטית לקהילה הישראלית",
   keywords: ["Zcash", "ZEC", "פרטיות", "קריפטו", "zk-SNARKs", "ישראל"],
+  icons: {
+    icon: [{ url: "/icon.jpg", type: "image/jpeg" }],
+    shortcut: "/icon.jpg",
+    apple: "/icon.jpg",
+  },
 };
 
 export default function RootLayout({
