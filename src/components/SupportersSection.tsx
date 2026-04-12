@@ -22,6 +22,10 @@ interface Supporter extends SupporterPerson {
   duo?: SupporterPerson
   /** Shared role line shown below both people in a duo card */
   duoRole?: string
+  /** Only render on md+ screens (desktop/tablet) */
+  desktopOnly?: boolean
+  /** Only render on < md screens (mobile carousel) */
+  mobileOnly?: boolean
 }
 
 export const SUPPORTERS: Supporter[] = [
@@ -81,6 +85,27 @@ export const SUPPORTERS: Supporter[] = [
     imageSrc: '/avatars/barry-silbert.jpg',
     href: 'https://twitter.com/BarrySilbert',
   },
+  // ── Desktop/tablet: single combined duo card ────────────────────────────
+  {
+    name: 'Tyler Winklevoss',
+    role: '',
+    initials: 'TW',
+    avatarGradient: 'linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%)',
+    imageSrc: '/avatars/winklevoss.jpg',
+    href: 'https://twitter.com/tyler',
+    duo: {
+      name: 'Cameron Winklevoss',
+      role: '',
+      initials: 'CW',
+      avatarGradient: 'linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%)',
+      imageSrc: '/avatars/cameron-winklevoss.jpg',
+      href: 'https://twitter.com/cameron',
+    },
+    duoRole:
+      'ממייסדי Gemini, מיליארדרי ביטקוין מוקדמים ותומכים בולטים ב-Zcash ובפרטיות פיננסית',
+    desktopOnly: true,
+  },
+  // ── Mobile carousel: two separate cards ─────────────────────────────────
   {
     name: 'Tyler Winklevoss',
     role: 'ממייסדי Gemini, מיליארדר ביטקוין מוקדם ותומך בולט ב-Zcash ובפרטיות פיננסית',
@@ -88,6 +113,7 @@ export const SUPPORTERS: Supporter[] = [
     avatarGradient: 'linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%)',
     imageSrc: '/avatars/winklevoss.jpg',
     href: 'https://twitter.com/tyler',
+    mobileOnly: true,
   },
   {
     name: 'Cameron Winklevoss',
@@ -96,6 +122,7 @@ export const SUPPORTERS: Supporter[] = [
     avatarGradient: 'linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%)',
     imageSrc: '/avatars/cameron-winklevoss.jpg',
     href: 'https://twitter.com/cameron',
+    mobileOnly: true,
   },
   {
     name: 'Tim Ferriss',
@@ -260,12 +287,19 @@ function PersonSlot({
 function SupporterCard({ supporter, index }: { supporter: Supporter; index: number }) {
   const [hovered, setHovered] = useState(false)
 
+  const visibilityClass = supporter.desktopOnly
+    ? 'hidden md:block'
+    : supporter.mobileOnly
+    ? 'block md:hidden'
+    : ''
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.08, duration: 0.4 }}
+      className={visibilityClass}
     >
       <div
         onMouseEnter={() => setHovered(true)}
