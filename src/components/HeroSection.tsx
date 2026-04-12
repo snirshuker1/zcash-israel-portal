@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext, useRef } from "react";
 import { motion } from "framer-motion";
 import useSWR from "swr";
 import ShieldedTxSVG from "./ShieldedTxSVG";
 import GlitchHeroButton from "./GlitchHeroButton";
+import { PageReadyContext } from "./PageWrapper";
 
 const statsFetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -16,12 +17,13 @@ const AMBER = "#F3B132";
 const NEAR_INTENTS_URL = "https://near-intents.org/?from=USDT&to=ZEC";
 
 // ── Scramble / code-decrypt animation ─────────────────────────────────────────
-// All characters start randomised and resolve left→right, top→bottom over 2 s.
+// First character locks in instantly when the reveal starts; the rest cascade
+// left→right, top→bottom across REVEAL_SPAN.
 const SCRAMBLE_POOL =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*<>{}[]|/\\~";
-const SCRAMBLE_FPS = 32; // ms between scramble frames
-const REVEAL_START = 250; // ms before first char locks in
-const REVEAL_SPAN = 1750; // ms over which all chars lock in (total ≈ 2 s)
+const SCRAMBLE_FPS = 28; // ms between scramble frames
+const REVEAL_START = 0; // first char locks in immediately
+const REVEAL_SPAN = 1400; // ms over which the remaining chars lock in
 
 const HEADLINE_LINES: [string, string][] = [
   ["Zcash:", "#09090b"],
@@ -33,51 +35,38 @@ function randChar() {
   return SCRAMBLE_POOL[Math.floor(Math.random() * SCRAMBLE_POOL.length)];
 }
 
-function ScrambleHeadline() {
-  // Start with visible random characters so the scramble is instant
+function buildResolved(): boolean[][] {
+  return HEADLINE_LINES.map(([t]) => t.split("").map((c) => c === " "));
+}
+
+function buildScrambledBuf(): string[][] {
+  return HEADLINE_LINES.map(([t]) =>
+    t.split("").map((c) => (c === " " ? " " : randChar()))
+  );
+}
+
+function ScrambleHeadline({ pageReady }: { pageReady: boolean }) {
+  // Initial state: scrambled chars on both server and client. The space is
+  // reserved correctly and the headline is visible from the very first paint.
+  // Hydration mismatch is expected (server randoms ≠ client randoms) and
+  // suppressed — both look like scramble noise to the user.
   const [display, setDisplay] = useState<string[]>(() =>
-    HEADLINE_LINES.map(([t]) =>
-      t
-        .split("")
-        .map((c) => (c === " " ? " " : randChar()))
-        .join("")
-    )
+    buildScrambledBuf().map((chars) => chars.join(""))
   );
 
+  // Refs shared by the always-on scramble loop and the gated reveal timers.
+  const bufRef = useRef<string[][]>(buildScrambledBuf());
+  const resolvedRef = useRef<boolean[][]>(buildResolved());
+
+  // Always-on scramble loop — re-randomises every unresolved char each frame.
+  // Runs from mount so the headline is alive even while the loading
+  // interstitial is fading out, with no static frame in between.
   useEffect(() => {
     let cancelled = false;
-
-    // Flat list of every non-space character position (top→bottom, left→right)
-    const positions: { li: number; ci: number; ch: string }[] = [];
-    HEADLINE_LINES.forEach(([text], li) =>
-      text.split("").forEach((ch, ci) => {
-        if (ch !== " ") positions.push({ li, ci, ch });
-      })
-    );
-
-    // Mutable working arrays
-    const resolved: boolean[][] = HEADLINE_LINES.map(([t]) =>
-      t.split("").map((c) => c === " ")
-    );
-    const buf: string[][] = HEADLINE_LINES.map(([t]) =>
-      t.split("").map((c) => (c === " " ? " " : randChar()))
-    );
-
-    // Schedule each character's lock-in time
-    const timers = positions.map((pos, idx) => {
-      const t =
-        REVEAL_START +
-        (idx / Math.max(positions.length - 1, 1)) * REVEAL_SPAN;
-      return setTimeout(() => {
-        if (cancelled) return;
-        resolved[pos.li][pos.ci] = true;
-        buf[pos.li][pos.ci] = pos.ch;
-      }, t);
-    });
-
-    // Scramble loop — re-randomise every unresolved character each frame
     const interval = setInterval(() => {
       if (cancelled) return;
+      const buf = bufRef.current;
+      const resolved = resolvedRef.current;
       let allDone = true;
       for (let li = 0; li < buf.length; li++) {
         for (let ci = 0; ci < buf[li].length; ci++) {
@@ -97,9 +86,46 @@ function ScrambleHeadline() {
     return () => {
       cancelled = true;
       clearInterval(interval);
-      timers.forEach((t) => clearTimeout(t));
     };
   }, []);
+
+  // Reveal timers — only scheduled once the loading interstitial has
+  // dismissed, so the resolve animation plays for the user instead of
+  // running invisibly behind the cover. The first character is locked in
+  // synchronously so the sentence starts appearing on the same frame.
+  useEffect(() => {
+    if (!pageReady) return;
+
+    const positions: { li: number; ci: number; ch: string }[] = [];
+    HEADLINE_LINES.forEach(([text], li) =>
+      text.split("").forEach((ch, ci) => {
+        if (ch !== " ") positions.push({ li, ci, ch });
+      })
+    );
+    if (positions.length === 0) return;
+
+    // Lock in the first character immediately, then push it to display so
+    // the user sees a real letter on the very first paint after pageReady.
+    const first = positions[0];
+    resolvedRef.current[first.li][first.ci] = true;
+    bufRef.current[first.li][first.ci] = first.ch;
+    setDisplay(bufRef.current.map((chars) => chars.join("")));
+
+    const timers = positions.slice(1).map((pos, i) => {
+      const idx = i + 1;
+      const t =
+        REVEAL_START +
+        (idx / Math.max(positions.length - 1, 1)) * REVEAL_SPAN;
+      return setTimeout(() => {
+        resolvedRef.current[pos.li][pos.ci] = true;
+        bufRef.current[pos.li][pos.ci] = pos.ch;
+      }, t);
+    });
+
+    return () => {
+      timers.forEach((t) => clearTimeout(t));
+    };
+  }, [pageReady]);
 
   return (
     <h1
@@ -128,32 +154,6 @@ function ScrambleHeadline() {
   );
 }
 
-// Static headline — holds space before hydration (invisible)
-function StaticHeadline() {
-  return (
-    <h1
-      dir="ltr"
-      style={{
-        fontSize: "clamp(3.2rem, 8vw, 5.5rem)",
-        fontWeight: 800,
-        letterSpacing: "-0.03em",
-        lineHeight: 1.08,
-        fontFamily: "var(--font-mono), monospace",
-        margin: 0,
-        marginBottom: 24,
-        opacity: 0,
-        textAlign: "left",
-      }}
-    >
-      <span style={{ color: "#09090b" }}>Zcash:</span>
-      <br />
-      <span style={{ color: AMBER }}>Encrypt Your</span>
-      <br />
-      <span style={{ color: "#09090b" }}>Money.</span>
-    </h1>
-  );
-}
-
 function Ltr({ children, mono = false }: { children: React.ReactNode; mono?: boolean }) {
   return (
     <span
@@ -171,11 +171,10 @@ function scrollTo(id: string) {
 }
 
 export default function HeroSection() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // Headline always renders with scrambled chars (no opacity-0 placeholder).
+  // The reveal animation only kicks in once PageWrapper signals the loading
+  // interstitial has dismissed.
+  const pageReady = useContext(PageReadyContext);
 
   // Live ZEC circulating supply via CoinGecko (proxied through /api/zcash/stats)
   const { data: stats } = useSWR<{ circulatingSupply: number | null }>(
@@ -242,7 +241,7 @@ export default function HeroSection() {
           </motion.div>
 
           {/* Headline */}
-          {mounted ? <ScrambleHeadline /> : <StaticHeadline />}
+          <ScrambleHeadline pageReady={pageReady} />
 
           {/* Hebrew sub-headline */}
           <motion.p
