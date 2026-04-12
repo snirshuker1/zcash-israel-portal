@@ -20,13 +20,31 @@ const STATUS_STEPS = [
   { label: "zk-SNARK Proof Verified", color: AMBER },
 ];
 
+// Matches the mobile breakpoint used in globals.css (@media max-width: 640px).
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return isMobile;
+}
+
 export default function ShieldedTxSVG() {
   const [phase, setPhase] = useState(0); // 0=idle 1=shielding 2=proving 3=verified
   const [progress, setProgress] = useState(0);
   const [scrambled, setScrambled] = useState(rnd(12));
   const [tick, setTick] = useState(0); // drives animation loop
+  const isMobile = useIsMobile();
 
   useEffect(() => {
+    // Mobile: skip the entire phase loop — the card stays in a static
+    // "verified" state below via effectivePhase, so no layout shifts occur.
+    if (isMobile) return;
+
     setPhase(0);
     setProgress(0);
 
@@ -53,9 +71,12 @@ export default function ShieldedTxSVG() {
       clearInterval(scrambleTimer);
       clearTimeout(stopScramble);
     };
-  }, [tick]);
+  }, [tick, isMobile]);
 
-  const progressPct = Math.round(progress);
+  // On mobile we freeze the card in the final, fully-verified state so the
+  // layout never shifts. Desktop keeps the live phase/progress values.
+  const effectivePhase = isMobile ? 3 : phase;
+  const effectiveProgressPct = isMobile ? 100 : Math.round(progress);
 
   return (
     <div
@@ -113,7 +134,7 @@ export default function ShieldedTxSVG() {
           >
             <span style={{ color: "#52525b", fontSize: "0.82rem" }}>t1</span>
             <span style={{ color: "#a1a1aa", fontSize: "0.84rem", letterSpacing: "0.04em" }}>
-              {phase === 1 ? scrambled : T_ADDR}
+              {effectivePhase === 1 ? scrambled : T_ADDR}
               <span style={{ opacity: 0.4 }}>···</span>
             </span>
             <span
@@ -138,9 +159,9 @@ export default function ShieldedTxSVG() {
           <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 4 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ color: AMBER, fontSize: "0.7rem", letterSpacing: "0.12em" }}>
-                {phase === 3 ? "✓ SHIELDED" : phase >= 1 ? "⏳ SHIELDING..." : "PENDING"}
+                {effectivePhase === 3 ? "✓ SHIELDED" : effectivePhase >= 1 ? "⏳ SHIELDING..." : "PENDING"}
               </span>
-              <span style={{ color: "#52525b", fontSize: "0.7rem" }}>{progressPct}%</span>
+              <span style={{ color: "#52525b", fontSize: "0.7rem" }}>{effectiveProgressPct}%</span>
             </div>
             <div style={{ height: 5, background: "#1a1a1a", borderRadius: 2, overflow: "hidden" }}>
               <motion.div
@@ -149,7 +170,7 @@ export default function ShieldedTxSVG() {
                   borderRadius: 2,
                   background: `linear-gradient(90deg, ${PURPLE}, ${AMBER})`,
                 }}
-                animate={{ width: `${progressPct}%` }}
+                animate={{ width: `${effectiveProgressPct}%` }}
                 transition={{ ease: "easeOut" }}
               />
             </div>
@@ -165,7 +186,7 @@ export default function ShieldedTxSVG() {
           <div
             style={{
               background: "#1a1a1a",
-              border: `1px solid ${phase >= 2 ? PURPLE + "60" : "#27272a"}`,
+              border: `1px solid ${effectivePhase >= 2 ? PURPLE + "60" : "#27272a"}`,
               borderRadius: 8,
               padding: "8px 12px",
               display: "flex",
@@ -175,7 +196,7 @@ export default function ShieldedTxSVG() {
             }}
           >
             <span style={{ color: PURPLE, fontSize: "0.82rem" }}>zs</span>
-            <span style={{ color: phase >= 2 ? "#e4e4e7" : "#3a3a3a", fontSize: "0.84rem", letterSpacing: "0.04em", transition: "color 0.6s" }}>
+            <span style={{ color: effectivePhase >= 2 ? "#e4e4e7" : "#3a3a3a", fontSize: "0.84rem", letterSpacing: "0.04em", transition: "color 0.6s" }}>
               {Z_ADDR}
               <span style={{ opacity: 0.4 }}>···</span>
             </span>
@@ -185,8 +206,8 @@ export default function ShieldedTxSVG() {
                 fontSize: "0.65rem",
                 padding: "2px 6px",
                 borderRadius: 4,
-                background: phase >= 2 ? "rgba(139,92,246,0.15)" : "transparent",
-                color: phase >= 2 ? PURPLE : "#3a3a3a",
+                background: effectivePhase >= 2 ? "rgba(139,92,246,0.15)" : "transparent",
+                color: effectivePhase >= 2 ? PURPLE : "#3a3a3a",
                 letterSpacing: "0.08em",
                 transition: "all 0.4s",
               }}
@@ -208,7 +229,7 @@ export default function ShieldedTxSVG() {
         >
           {STATUS_STEPS.map((step, i) => (
             <AnimatePresence key={i}>
-              {phase >= 2 + (i > 1 ? 1 : 0) && (
+              {effectivePhase >= 2 + (i > 1 ? 1 : 0) && (
                 <motion.div
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -230,7 +251,7 @@ export default function ShieldedTxSVG() {
 
         {/* PROOF VERIFIED badge */}
         <AnimatePresence>
-          {phase === 3 && (
+          {effectivePhase === 3 && (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}

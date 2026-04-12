@@ -213,6 +213,10 @@ img, svg, video, canvas {
   #metrics h2 {
     font-size: 1.5rem !important;
   }
+  /* Hide the BLOCK_HEIGHT tile on mobile — desktop keeps all three cards. */
+  .metrics-grid > :first-child {
+    display: none !important;
+  }
 
   /* ── Timeline ───────────────────────────────────────────────────────── */
   #timeline {

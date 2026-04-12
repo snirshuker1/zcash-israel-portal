@@ -387,7 +387,7 @@ export default function SupportersSection() {
           className="supporters-grid"
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))',
+            gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
             gap: 14,
             justifyItems: 'stretch',
           }}
