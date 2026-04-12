@@ -197,8 +197,12 @@ function PersonSlot({
   avatarSize?: number
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, width: '100%' }}>
+    <div
+      className="supporter-person"
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, width: '100%' }}
+    >
       <div
+        className="supporter-avatar-ring"
         style={{
           padding: 3,
           borderRadius: '50%',
@@ -217,11 +221,15 @@ function PersonSlot({
       <div style={{ textAlign: 'center' }}>
         <p
           dir="ltr"
+          className="supporter-name"
           style={{ fontSize: '0.95rem', fontWeight: 700, color: '#09090B', letterSpacing: '-0.01em', lineHeight: 1.3, marginBottom: 5 }}
         >
           {person.name}
         </p>
-        <p style={{ fontSize: '0.78rem', color: '#71717A', lineHeight: 1.55, maxWidth: 180, margin: '0 auto' }}>
+        <p
+          className="supporter-role"
+          style={{ fontSize: '0.78rem', color: '#71717A', lineHeight: 1.55, maxWidth: 180, margin: '0 auto' }}
+        >
           {person.role}
         </p>
       </div>
@@ -231,6 +239,7 @@ function PersonSlot({
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
+          className="supporter-profile"
           style={{
             display: 'flex', alignItems: 'center', gap: 4,
             fontFamily: 'var(--font-mono), monospace', fontSize: '0.6rem',
@@ -262,6 +271,7 @@ function SupporterCard({ supporter, index }: { supporter: Supporter; index: numb
       <div
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
+        className={`supporter-card${supporter.duo ? ' supporter-card--duo' : ''}`}
         style={{
           backgroundColor: '#FFFFFF',
           border: `1px solid ${hovered ? AMBER + '60' : '#E4E4E7'}`,
@@ -295,7 +305,10 @@ function SupporterCard({ supporter, index }: { supporter: Supporter; index: numb
         {supporter.duo ? (
           /* ── Duo layout (side by side) ── */
           <>
-            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: 0, width: '100%' }}>
+            <div
+              className="supporter-duo-row"
+              style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: 0, width: '100%' }}
+            >
               <div style={{ flex: 1 }}>
                 <PersonSlot person={supporter} hovered={hovered} avatarSize={64} />
               </div>
@@ -307,7 +320,10 @@ function SupporterCard({ supporter, index }: { supporter: Supporter; index: numb
             {supporter.duoRole && (
               <>
                 <div style={{ width: '100%', height: 1, backgroundColor: '#E4E4E7' }} />
-                <p style={{ fontSize: '0.78rem', color: '#71717A', lineHeight: 1.55, textAlign: 'center', margin: 0 }}>
+                <p
+                  className="supporter-duo-role"
+                  style={{ fontSize: '0.78rem', color: '#71717A', lineHeight: 1.55, textAlign: 'center', margin: 0 }}
+                >
                   {supporter.duoRole}
                 </p>
               </>

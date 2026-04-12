@@ -299,36 +299,6 @@ img, svg, video, canvas {
   #supporters h2 {
     font-size: 1.55rem !important;
   }
-  /* Horizontal swipeable carousel — single row with native scroll-snap.
-     Bleeds to the viewport edges so the last card has room to breathe. */
-  .supporters-grid {
-    display: flex !important;
-    grid-template-columns: none !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x mandatory !important;
-    scroll-padding-left: 16px !important;
-    gap: 14px !important;
-    margin: 0 -16px !important;
-    padding: 6px 16px 14px 16px !important;
-    max-width: none !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-  }
-  .supporters-grid::-webkit-scrollbar {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-  }
-  .supporters-grid > * {
-    flex: 0 0 auto !important;
-    width: 76vw !important;
-    max-width: 290px !important;
-    min-width: 240px !important;
-    scroll-snap-align: start !important;
-  }
 
   /* ── FAQ ────────────────────────────────────────────────────────────── */
   #faq {
@@ -375,6 +345,114 @@ img, svg, video, canvas {
   }
   footer > div > div:last-child p {
     font-size: 0.66rem !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Supporters mobile carousel (≤ 767px / below Tailwind md)
+   - Exactly 3 compact cards visible at once, native scroll-snap swipe.
+   - Scrollbar hidden for a clean app-like feel.
+   - Card content is shrunk proportionally so ~100px cards still breathe.
+   ───────────────────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .supporters-grid {
+    display: flex !important;
+    grid-template-columns: none !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory !important;
+    scroll-padding-inline-start: 16px !important;
+    scroll-padding-left: 16px !important;
+    gap: 12px !important;
+    margin: 0 -16px !important;
+    padding: 6px 16px 14px 16px !important;
+    max-width: none !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  .supporters-grid::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
+  /* 3 cards visible: (viewport - 2×16px edge pad - 2×12px gaps) / 3 */
+  .supporters-grid > * {
+    flex: 0 0 calc((100vw - 56px) / 3) !important;
+    width: calc((100vw - 56px) / 3) !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    scroll-snap-align: start !important;
+  }
+
+  /* Shrunken card shell */
+  .supporter-card {
+    padding: 16px 8px 14px !important;
+    gap: 10px !important;
+    border-radius: 12px !important;
+  }
+
+  /* Single-person avatar */
+  .supporter-person {
+    gap: 9px !important;
+  }
+  .supporter-avatar-ring {
+    padding: 2px !important;
+  }
+  .supporter-avatar-ring > div {
+    width: 52px !important;
+    height: 52px !important;
+  }
+
+  .supporter-name {
+    font-size: 0.7rem !important;
+    margin-bottom: 2px !important;
+    line-height: 1.25 !important;
+  }
+  .supporter-role {
+    font-size: 0.58rem !important;
+    line-height: 1.4 !important;
+    max-width: 100% !important;
+  }
+  .supporter-profile {
+    font-size: 0.5rem !important;
+    letter-spacing: 0.05em !important;
+  }
+  .supporter-profile svg {
+    width: 8px !important;
+    height: 8px !important;
+  }
+
+  /* Duo card — two people share a narrow card */
+  .supporter-duo-row {
+    gap: 0 !important;
+  }
+  /* Divider between the two people — shrink surrounding margin */
+  .supporter-duo-row > div:nth-child(2) {
+    margin: 0 3px !important;
+  }
+  .supporter-duo-row .supporter-person {
+    gap: 6px !important;
+  }
+  .supporter-duo-row .supporter-avatar-ring > div {
+    width: 34px !important;
+    height: 34px !important;
+  }
+  .supporter-duo-row .supporter-name {
+    font-size: 0.56rem !important;
+    margin-bottom: 1px !important;
+  }
+  .supporter-duo-row .supporter-role {
+    display: none !important;
+  }
+  .supporter-duo-row .supporter-profile {
+    display: none !important;
+  }
+  .supporter-duo-role {
+    font-size: 0.58rem !important;
+    line-height: 1.4 !important;
   }
 }
 
