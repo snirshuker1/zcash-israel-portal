@@ -77,6 +77,9 @@ export default function Footer() {
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {[
+                  { label: "Zcash (z.cash)", href: "https://z.cash" },
+                  { label: "Electric Coin Co", href: "https://electriccoin.co" },
+                  { label: "Shielded Labs", href: "https://shieldedlabs.net" },
                   { label: "Zcash Foundation", href: "https://zfnd.org" },
                   { label: "Zcash Community Forum", href: "https://forum.zcashcommunity.com" },
                 ].map((link) => (
@@ -110,6 +113,36 @@ export default function Footer() {
                   { label: "Zodl (Mobile)", href: "https://zodl.app" },
                   { label: "Edge Wallet", href: "https://edge.app" },
                   { label: "Near Intents (Buy ZEC)", href: "https://near-intents.org/?from=USDT&to=ZEC" },
+                ].map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      fontSize: "0.8rem",
+                      color: "#71717a",
+                      textDecoration: "none",
+                      fontFamily: "Inter, system-ui, sans-serif",
+                      transition: "color 0.15s",
+                    }}
+                    onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = AMBER)}
+                    onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "#71717a")}
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p style={{ fontSize: "0.65rem", color: "#52525b", letterSpacing: "0.1em", marginBottom: 10, fontFamily: "var(--font-mono), monospace" }}>
+                CONTACT
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {[
+                  { label: "X · @ZcashIsrael", href: "https://x.com/ZcashIsrael" },
+                  { label: "Email · pyroninfo@gmail.com", href: "https://mail.google.com/mail/?view=cm&fs=1&to=pyroninfo@gmail.com" },
                 ].map((link) => (
                   <a
                     key={link.href}
