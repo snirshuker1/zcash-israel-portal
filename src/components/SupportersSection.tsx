@@ -384,6 +384,7 @@ export default function SupportersSection() {
 
         {/* Cards grid */}
         <div
+          className="supporters-grid"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))',

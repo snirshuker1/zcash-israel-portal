@@ -158,34 +158,65 @@ img, svg, video, canvas {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
+   Navbar visibility — overrides inline display styles via specificity
+   ───────────────────────────────────────────────────────────────────────── */
+.nav-mobile-only { display: none !important; }
+.nav-desktop-only { display: flex !important; }
+
+@media (max-width: 767px) {
+  .nav-desktop-only { display: none !important; }
+  .nav-mobile-only { display: flex !important; }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
    Mobile overrides (≤ 640px)
    Components use inline styles, so overrides need !important.
    ───────────────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
-  /* Hero */
+  /* ── Hero ───────────────────────────────────────────────────────────── */
   #hero {
-    padding: 88px 16px 48px !important;
+    padding: 92px 16px 56px !important;
     min-height: auto !important;
   }
   #hero > div {
-    gap: 32px !important;
+    gap: 36px !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
   }
   #hero h1 {
-    font-size: clamp(2.1rem, 11vw, 3rem) !important;
+    font-size: clamp(2.1rem, 10.5vw, 3rem) !important;
     margin-bottom: 18px !important;
+    line-height: 1.05 !important;
   }
   #hero p {
-    font-size: 1.05rem !important;
+    font-size: 1rem !important;
+    line-height: 1.65 !important;
+  }
+  #hero p[dir="ltr"] {
+    font-size: 0.78rem !important;
+    word-break: break-word !important;
+  }
+  /* Hero stats strip — the last motion.div inside the text column */
+  #hero > div > div:first-child > div:last-child {
+    gap: 22px !important;
+    margin-top: 36px !important;
+    padding-top: 24px !important;
+  }
+  #hero > div > div:first-child > div:last-child > div > div:first-child {
+    font-size: 1.15rem !important;
   }
 
-  /* Metrics dark band */
+  /* ── Metrics dark band ──────────────────────────────────────────────── */
   #metrics {
-    padding: 48px 16px !important;
+    padding: 56px 16px !important;
+  }
+  #metrics h2 {
+    font-size: 1.5rem !important;
   }
 
-  /* Timeline */
+  /* ── Timeline ───────────────────────────────────────────────────────── */
   #timeline {
-    padding: 56px 16px !important;
+    padding: 64px 16px !important;
   }
   #timeline > div > div > div {
     padding: 32px 22px !important;
@@ -197,45 +228,119 @@ img, svg, video, canvas {
   #timeline button {
     width: 100%;
     justify-content: center;
+    padding: 14px 18px !important;
+    flex-wrap: wrap;
+  }
+  #timeline button > span:last-child {
+    font-size: 0.78rem !important;
   }
 
-  /* Ideological CTA */
+  /* ── Ideological CTA ────────────────────────────────────────────────── */
   #cta {
-    padding: 56px 0 !important;
+    padding: 64px 0 !important;
   }
-  #cta p:nth-of-type(1) {
+  #cta > div {
+    padding: 0 18px !important;
+  }
+  #cta > div > p:nth-of-type(1) {
     font-size: 1.55rem !important;
+    line-height: 1.5 !important;
+  }
+  #cta > div > p:nth-of-type(2) {
+    font-size: 1rem !important;
+    line-height: 1.65 !important;
+    margin-bottom: 32px !important;
+  }
+  #cta a {
+    width: 100%;
+    justify-content: center;
+    font-size: 0.98rem !important;
+    padding: 14px 18px !important;
+    text-align: center;
   }
 
-  /* Supporters */
+  /* ── Supporters ─────────────────────────────────────────────────────── */
   #supporters {
     padding: 64px 16px !important;
   }
+  #supporters h2 {
+    font-size: 1.55rem !important;
+  }
+  /* Force a single column on phones — duo cards are too cramped at 2-up */
+  .supporters-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    max-width: 380px !important;
+    margin: 0 auto !important;
+  }
 
-  /* FAQ */
+  /* ── FAQ ────────────────────────────────────────────────────────────── */
   #faq {
     padding: 72px 0 !important;
   }
+  #faq > div {
+    padding: 0 16px !important;
+  }
+  #faq h2 {
+    font-size: 1.75rem !important;
+  }
   #faq button {
-    padding: 18px 18px !important;
+    padding: 18px 16px !important;
     gap: 10px !important;
   }
   #faq button span span:nth-child(2) {
     font-size: 0.95rem !important;
+    line-height: 1.45 !important;
+  }
+  /* FAQ answer body — un-indent on mobile so text isn't squeezed */
+  #faq button + div > div {
+    padding: 4px 16px 22px 16px !important;
+    font-size: 0.92rem !important;
+    line-height: 1.7 !important;
   }
 
-  /* Footer */
+  /* ── Footer ─────────────────────────────────────────────────────────── */
   footer {
-    padding: 40px 20px 28px !important;
+    padding: 48px 20px 32px !important;
   }
   footer > div > div:first-child {
-    gap: 28px !important;
+    gap: 32px !important;
+    flex-direction: column !important;
   }
   footer > div > div:first-child > div:nth-child(2) {
     gap: 28px !important;
+    width: 100%;
   }
+  footer > div > div:last-child {
+    justify-content: center !important;
+    text-align: center;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  footer > div > div:last-child p {
+    font-size: 0.66rem !important;
+  }
+}
 
-  /* Navbar price pill hides naturally via md:hidden */
+/* Slightly larger phones / small tablets */
+@media (min-width: 481px) and (max-width: 640px) {
+  .supporters-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Very small phones — tighter still */
+@media (max-width: 380px) {
+  #hero h1 {
+    font-size: clamp(1.85rem, 11vw, 2.4rem) !important;
+  }
+  #hero p {
+    font-size: 0.95rem !important;
+  }
+  .navbar-inner {
+    padding: 0 14px !important;
+  }
 }
 
 /* Thinner scrollbar feel on tablets/phones */

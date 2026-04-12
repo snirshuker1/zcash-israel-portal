@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -38,6 +38,22 @@ export default function Navbar() {
     window.addEventListener("scroll", handler);
     return () => window.removeEventListener("scroll", handler);
   }, []);
+
+  // Lock body scroll while mobile drawer is open
+  useEffect(() => {
+    if (open) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [open]);
+
+  // Close drawer on route change
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   function handleNavLink(id: string) {
     if (isHome) {
@@ -79,13 +95,14 @@ export default function Navbar() {
       }}
     >
       <div
+        className="navbar-inner"
         style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}
         dir="rtl"
       >
         {/* Logo — always navigates to homepage */}
         <Link
           href="/"
-          style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}
+          style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", flexShrink: 0 }}
           dir="ltr"
         >
           <svg width={28} height={28} viewBox="0 0 493.3 490.2" xmlns="http://www.w3.org/2000/svg" aria-hidden>
@@ -105,7 +122,7 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop nav */}
-        <nav style={{ display: "flex", alignItems: "center", gap: 4 }} className="hidden md:flex">
+        <nav className="nav-desktop-only" style={{ display: "flex", alignItems: "center", gap: 4 }}>
           {NAV_LINKS.map((link) => (
             <button
               key={link.id}
@@ -156,7 +173,7 @@ export default function Navbar() {
         </nav>
 
         {/* Right side: price ticker + CTA */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }} dir="ltr" className="hidden md:flex">
+        <div className="nav-desktop-only" style={{ display: "flex", alignItems: "center", gap: 12 }} dir="ltr">
           {price !== null && (
             <div
               style={{
@@ -195,78 +212,232 @@ export default function Navbar() {
           </a>
         </div>
 
-        {/* Mobile hamburger */}
-        <button
-          onClick={() => setOpen((o) => !o)}
-          style={{ background: "none", border: "none", color: textCol, cursor: "pointer", padding: 4 }}
-          className="md:hidden"
-        >
-          {open ? <X size={20} /> : <Menu size={20} />}
-        </button>
-      </div>
-
-      {/* Mobile drawer */}
-      {open && (
-        <motion.div
-          suppressHydrationWarning
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-          style={{
-            background: isDark ? "#09090b" : "#ffffff",
-            borderTop: `1px solid ${isDark ? "#27272a" : "#e4e4e7"}`,
-            padding: "16px 24px 20px",
-            display: "flex", flexDirection: "column", gap: 4,
-          }}
-          dir="rtl"
-        >
-          {NAV_LINKS.map((link) => (
-            <button
-              key={link.id}
-              onClick={() => { handleNavLink(link.id); setOpen(false); }}
+        {/* Mobile right cluster: price chip + hamburger */}
+        <div className="nav-mobile-only" style={{ display: "flex", alignItems: "center", gap: 10 }} dir="ltr">
+          {price !== null && (
+            <div
               style={{
-                background: "none", border: "none", cursor: "pointer",
-                padding: "10px 0", textAlign: "right",
-                fontSize: link.mono ? "0.9rem" : "1rem",
-                color: isDark ? "#a1a1aa" : "#52525b",
-                fontFamily: link.mono ? "var(--font-mono), monospace" : "Inter, system-ui, sans-serif",
-                borderBottom: `1px solid ${isDark ? "#18181b" : "#f4f4f5"}`,
-                width: "100%",
+                display: "flex", alignItems: "center", gap: 5,
+                padding: "4px 9px", borderRadius: 6,
+                background: priceBg, border: `1px solid ${priceBdr}`,
+                fontFamily: "var(--font-mono), monospace", fontSize: "0.68rem",
+                lineHeight: 1,
               }}
             >
-              {link.label}
-            </button>
-          ))}
-          <Link
-            href="/guides/start"
-            onClick={() => setOpen(false)}
+              <span style={{ color: mutedCol }}>ZEC</span>
+              <span style={{ color: mainCol, fontWeight: 600 }} suppressHydrationWarning>
+                ${price.toFixed(2)}
+              </span>
+            </div>
+          )}
+          <button
+            onClick={() => setOpen((o) => !o)}
+            aria-label={open ? "סגור תפריט" : "פתח תפריט"}
+            aria-expanded={open}
             style={{
-              background: "none", border: "none", cursor: "pointer",
-              padding: "10px 0", textAlign: "right",
-              fontSize: "1rem", color: isDark ? "#a1a1aa" : "#52525b",
-              fontFamily: "Inter, system-ui, sans-serif",
-              borderBottom: `1px solid ${isDark ? "#18181b" : "#f4f4f5"}`,
-              display: "flex", alignItems: "center", gap: 6,
-              textDecoration: "none",
+              background: open ? hoverBg : "transparent",
+              border: `1px solid ${open ? linkHBdr : linkBdr}`,
+              color: open ? hoverCol : textCol,
+              cursor: "pointer",
+              width: 42, height: 42,
+              borderRadius: 10,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              transition: "all 0.2s",
             }}
           >
-            <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "0.75rem", color: AMBER }}>◎</span>
-            איך מתחילים?
-          </Link>
-          <a
-            href="https://near-intents.org/?from=USDT&to=ZEC"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              marginTop: 8, padding: "12px", borderRadius: 8,
-              background: AMBER, color: "#09090b",
-              fontWeight: 700, textAlign: "center", fontSize: "0.95rem",
-              fontFamily: "Inter, system-ui, sans-serif", textDecoration: "none",
-            }}
-          >
-            קנה ZEC ◎
-          </a>
-        </motion.div>
-      )}
+            <motion.span
+              key={open ? "x" : "menu"}
+              initial={{ rotate: -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              transition={{ duration: 0.18 }}
+              style={{ display: "flex" }}
+            >
+              {open ? <X size={20} /> : <Menu size={20} />}
+            </motion.span>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile drawer + backdrop */}
+      <AnimatePresence>
+        {open && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="backdrop"
+              className="nav-mobile-only"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setOpen(false)}
+              style={{
+                position: "fixed",
+                top: 56, left: 0, right: 0, bottom: 0,
+                background: "rgba(9,9,11,0.55)",
+                backdropFilter: "blur(4px)",
+                WebkitBackdropFilter: "blur(4px)",
+                zIndex: 40,
+              }}
+            />
+
+            {/* Drawer panel */}
+            <motion.div
+              key="drawer"
+              className="nav-mobile-only"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
+              dir="rtl"
+              style={{
+                position: "absolute",
+                top: 56, left: 12, right: 12,
+                background: isDark ? "#0b0b0e" : "#ffffff",
+                border: `1px solid ${isDark ? "#27272a" : "#e4e4e7"}`,
+                borderRadius: 14,
+                boxShadow: "0 24px 60px rgba(0,0,0,0.25), 0 4px 12px rgba(0,0,0,0.08)",
+                padding: 14,
+                zIndex: 45,
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+                maxHeight: "calc(100vh - 80px)",
+                overflowY: "auto",
+              }}
+            >
+              {/* Live status pill */}
+              {(price !== null || blockHeight !== null) && (
+                <div
+                  dir="ltr"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "10px 12px",
+                    marginBottom: 6,
+                    borderRadius: 10,
+                    background: isDark ? "#141418" : "#fafafa",
+                    border: `1px solid ${isDark ? "#27272a" : "#f0f0f3"}`,
+                    fontFamily: "var(--font-mono), monospace",
+                    fontSize: "0.72rem",
+                  }}
+                >
+                  <span style={{ display: "flex", alignItems: "center", gap: 6, color: mutedCol }}>
+                    <span
+                      className="pulse-amber"
+                      style={{ width: 6, height: 6, borderRadius: "50%", background: AMBER, display: "inline-block" }}
+                    />
+                    LIVE
+                  </span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    {price !== null && (
+                      <span style={{ color: mainCol, fontWeight: 600 }} suppressHydrationWarning>
+                        ${price.toFixed(2)}
+                      </span>
+                    )}
+                    {blockHeight !== null && (
+                      <>
+                        <span style={{ color: mutedCol }}>·</span>
+                        <span style={{ color: mutedCol }} suppressHydrationWarning>
+                          #{blockHeight.toLocaleString("en-US")}
+                        </span>
+                      </>
+                    )}
+                  </span>
+                </div>
+              )}
+
+              {NAV_LINKS.map((link, i) => (
+                <button
+                  key={link.id}
+                  onClick={() => { handleNavLink(link.id); setOpen(false); }}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: "14px 12px",
+                    textAlign: "right",
+                    fontSize: link.mono ? "0.95rem" : "1.02rem",
+                    color: isDark ? "#e4e4e7" : "#09090b",
+                    fontFamily: link.mono ? "var(--font-mono), monospace" : "Inter, system-ui, sans-serif",
+                    borderBottom: i < NAV_LINKS.length - 1
+                      ? `1px solid ${isDark ? "#18181b" : "#f4f4f5"}`
+                      : "none",
+                    width: "100%",
+                    borderRadius: 8,
+                    minHeight: 48,
+                    fontWeight: 500,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <span>{link.label}</span>
+                  <span style={{ color: mutedCol, fontSize: "0.85rem" }}>←</span>
+                </button>
+              ))}
+
+              <Link
+                href="/guides/start"
+                onClick={() => setOpen(false)}
+                style={{
+                  background: isDark ? "#141418" : "#fafafa",
+                  border: `1px solid ${isDark ? "#27272a" : "#e4e4e7"}`,
+                  cursor: "pointer",
+                  padding: "13px 14px",
+                  marginTop: 8,
+                  textAlign: "right",
+                  fontSize: "1rem",
+                  color: isDark ? "#e4e4e7" : "#09090b",
+                  fontFamily: "Inter, system-ui, sans-serif",
+                  borderRadius: 10,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  textDecoration: "none",
+                  minHeight: 48,
+                  fontWeight: 600,
+                }}
+              >
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: "0.85rem", color: AMBER }}>◎</span>
+                  איך מתחילים?
+                </span>
+                <span style={{ color: mutedCol, fontSize: "0.85rem" }}>←</span>
+              </Link>
+
+              <a
+                href="https://near-intents.org/?from=USDT&to=ZEC"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setOpen(false)}
+                style={{
+                  marginTop: 10,
+                  padding: "15px",
+                  borderRadius: 12,
+                  background: AMBER,
+                  color: "#09090b",
+                  fontWeight: 700,
+                  textAlign: "center",
+                  fontSize: "1rem",
+                  fontFamily: "Inter, system-ui, sans-serif",
+                  textDecoration: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  minHeight: 52,
+                  boxShadow: "0 4px 14px rgba(243,177,50,0.25)",
+                }}
+              >
+                קנה ZEC <span style={{ fontFamily: "var(--font-mono), monospace" }}>◎</span>
+              </a>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </motion.header>
   );
 }
