@@ -19,7 +19,7 @@ function zatoshisToZec(z: bigint): number {
 
 export async function GET() {
   try {
-    const [blockchairRes, binanceRes, shieldedRes] = await Promise.allSettled([
+    const [blockchairRes, binanceRes, shieldedRes, coingeckoRes] = await Promise.allSettled([
       fetch("https://api.blockchair.com/zcash/stats", { next: { revalidate: 60 } }),
       fetch("https://api.binance.com/api/v3/ticker/price?symbol=ZECUSDT", {
         next: { revalidate: 60 },
@@ -28,6 +28,11 @@ export async function GET() {
       fetch("https://zecprice.com/api/shielded-hourly", {
         next: { revalidate: 300 },
       }),
+      // CoinGecko (no API key) → authoritative ZEC circulating supply
+      fetch(
+        "https://api.coingecko.com/api/v3/coins/zcash?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false",
+        { next: { revalidate: 300 } }
+      ),
     ]);
 
     // Blockchair → block height + fallback price
@@ -55,6 +60,16 @@ export async function GET() {
       const data = await binanceRes.value.json();
       const parsed = parseFloat(data.price);
       if (!isNaN(parsed) && parsed > 0) priceUsd = parsed;
+    }
+
+    // CoinGecko → authoritative ZEC circulating supply (in whole ZEC units)
+    let circulatingSupply: number | null = null;
+    if (coingeckoRes.status === "fulfilled" && coingeckoRes.value.ok) {
+      const json = await coingeckoRes.value.json();
+      const supply = json?.market_data?.circulating_supply;
+      if (typeof supply === "number" && supply > 0) {
+        circulatingSupply = supply;
+      }
     }
 
     // zecprice.com /api/shielded-hourly → live shielded pool breakdown
@@ -86,6 +101,7 @@ export async function GET() {
       transactions24h,
       hashrate24h,
       circulation,
+      circulatingSupply,
       shieldedTotal,
       shieldedSapling,
       shieldedOrchard,

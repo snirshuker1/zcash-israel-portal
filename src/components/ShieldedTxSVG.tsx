@@ -81,32 +81,21 @@ export default function ShieldedTxSVG() {
         }}
         dir="ltr"
       >
-        <div className="shield-tx-mactab" style={{ display: "flex", gap: 6 }}>
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ef4444", display: "block" }} />
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#f59e0b", display: "block" }} />
-          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#22c55e", display: "block" }} />
-        </div>
-        <div className="shield-tx-zodl-logo" aria-label="Zodl wallet">
-          <span
-            style={{
-              width: 18,
-              height: 18,
-              borderRadius: 5,
-              background: `linear-gradient(135deg, ${AMBER}, #e09b1f)`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontFamily: "var(--font-mono), 'JetBrains Mono', monospace",
-              fontSize: "0.72rem",
-              fontWeight: 800,
-              color: "#09090B",
-              letterSpacing: "-0.02em",
-              boxShadow: "0 1px 2px rgba(0,0,0,0.35)",
-            }}
-          >
-            Z
-          </span>
-        </div>
+        {/* Zodl wallet logo — replaces mac window dots */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/assets/zodl-icon.png"
+          alt="Zodl wallet"
+          width={26}
+          height={20}
+          style={{
+            display: "block",
+            height: 20,
+            width: "auto",
+            filter: "brightness(0) invert(1)",
+            opacity: 0.92,
+          }}
+        />
         <span className="shield-tx-title" style={{ color: "#52525b", fontSize: "0.75rem", letterSpacing: "0.1em" }}>
           zcash · shield-transaction.ts
         </span>

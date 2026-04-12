@@ -110,9 +110,36 @@ export default function Footer() {
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {[
-                  { label: "Zodl (Mobile)", href: "https://zodl.app" },
-                  { label: "Edge Wallet", href: "https://edge.app" },
+                  { label: "Zodl (Mobile)", href: "https://zodl.com" },
+                  { label: "CakeWallet", href: "https://cakewallet.com" },
                   { label: "Near Intents (Buy ZEC)", href: "https://near-intents.org/?from=USDT&to=ZEC" },
+                ].map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      fontSize: "0.8rem",
+                      color: "#71717a",
+                      textDecoration: "none",
+                      fontFamily: "Inter, system-ui, sans-serif",
+                      transition: "color 0.15s",
+                    }}
+                    onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = AMBER)}
+                    onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "#71717a")}
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </div>
+
+              <p style={{ fontSize: "0.65rem", color: "#52525b", letterSpacing: "0.1em", marginTop: 18, marginBottom: 10, fontFamily: "var(--font-mono), monospace" }}>
+                HARDWARE WALLETS
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {[
+                  { label: "Keystone Wallet", href: "https://keyst.one" },
                 ].map((link) => (
                   <a
                     key={link.href}

@@ -2,8 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import useSWR from "swr";
 import ShieldedTxSVG from "./ShieldedTxSVG";
 import GlitchHeroButton from "./GlitchHeroButton";
+
+const statsFetcher = (url: string) => fetch(url).then((r) => r.json());
+
+function formatSupply(zec: number): string {
+  return Math.round(zec).toLocaleString("en-US");
+}
 
 const AMBER = "#F3B132";
 const NEAR_INTENTS_URL = "https://near-intents.org/?from=USDT&to=ZEC";
@@ -170,6 +177,14 @@ export default function HeroSection() {
     setMounted(true);
   }, []);
 
+  // Live ZEC circulating supply via CoinGecko (proxied through /api/zcash/stats)
+  const { data: stats } = useSWR<{ circulatingSupply: number | null }>(
+    "/api/zcash/stats",
+    statsFetcher,
+    { refreshInterval: 60_000, revalidateOnFocus: false }
+  );
+  const circulatingSupply = stats?.circulatingSupply ?? null;
+
   return (
     <section
       id="hero"
@@ -332,11 +347,16 @@ export default function HeroSection() {
           >
             {[
               { label: "Supply Cap", value: "21M ZEC" },
-              { label: "Uptime", value: "100%" },
+              {
+                label: "ZEC Circulating Supply",
+                value: circulatingSupply !== null ? formatSupply(circulatingSupply) : "—",
+              },
               { label: "Since", value: "2016" },
             ].map(({ label, value }) => (
               <div key={label}>
                 <div
+                  suppressHydrationWarning
+                  className="tabular-nums"
                   style={{
                     fontFamily: "var(--font-mono), monospace",
                     fontSize: "1.35rem",

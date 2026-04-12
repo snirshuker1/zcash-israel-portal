@@ -162,10 +162,8 @@ img, svg, video, canvas {
    The badge slot is layout-transparent on desktop so wrapping the badge
    doesn't introduce an extra flex gap; mobile turns it into a reserved
    fixed-height slot (see below) to keep the frame from resizing.
-   The Zodl wallet mark is mobile-only and hidden on desktop.
    ───────────────────────────────────────────────────────────────────────── */
 .shield-tx-badge-slot { display: contents; }
-.shield-tx-zodl-logo { display: none; }
 
 /* ─────────────────────────────────────────────────────────────────────────
    Navbar visibility — overrides inline display styles via specificity
@@ -217,17 +215,9 @@ img, svg, video, canvas {
   }
 
   /* ── ShieldedTxSVG (mobile) ─────────────────────────────────────────── */
-  /* Swap the mac traffic-light dots for a compact Zodl wallet mark,
-     keep the filename visible, strip the status checklist, tighten the
-     body padding, and reserve a fixed slot for the PROOF VERIFIED badge
-     so the frame never resizes during the shielding loop. */
-  .shield-tx-mactab {
-    display: none !important;
-  }
-  .shield-tx-zodl-logo {
-    display: flex !important;
-    align-items: center;
-  }
+  /* Strip the status checklist, tighten the body padding, and reserve a
+     fixed slot for the PROOF VERIFIED badge so the frame never resizes
+     during the shielding loop. */
   .shield-tx-body {
     padding: 18px 16px !important;
     gap: 14px !important;
