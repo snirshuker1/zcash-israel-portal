@@ -212,24 +212,8 @@ export default function Navbar() {
           </a>
         </div>
 
-        {/* Mobile right cluster: price chip + hamburger */}
+        {/* Mobile left cluster: hamburger (far left) + price chip immediately to its right */}
         <div className="nav-mobile-only" style={{ display: "flex", alignItems: "center", gap: 10 }} dir="ltr">
-          {price !== null && (
-            <div
-              style={{
-                display: "flex", alignItems: "center", gap: 5,
-                padding: "4px 9px", borderRadius: 6,
-                background: priceBg, border: `1px solid ${priceBdr}`,
-                fontFamily: "var(--font-mono), monospace", fontSize: "0.68rem",
-                lineHeight: 1,
-              }}
-            >
-              <span style={{ color: mutedCol }}>ZEC</span>
-              <span style={{ color: mainCol, fontWeight: 600 }} suppressHydrationWarning>
-                ${price.toFixed(2)}
-              </span>
-            </div>
-          )}
           <button
             onClick={() => setOpen((o) => !o)}
             aria-label={open ? "סגור תפריט" : "פתח תפריט"}
@@ -239,10 +223,11 @@ export default function Navbar() {
               border: `1px solid ${open ? linkHBdr : linkBdr}`,
               color: open ? hoverCol : textCol,
               cursor: "pointer",
-              width: 42, height: 42,
+              width: 44, height: 44,
               borderRadius: 10,
               display: "flex", alignItems: "center", justifyContent: "center",
               transition: "all 0.2s",
+              flexShrink: 0,
             }}
           >
             <motion.span
@@ -255,6 +240,23 @@ export default function Navbar() {
               {open ? <X size={20} /> : <Menu size={20} />}
             </motion.span>
           </button>
+          {price !== null && (
+            <div
+              style={{
+                display: "flex", alignItems: "center", gap: 5,
+                padding: "5px 10px", borderRadius: 6,
+                background: priceBg, border: `1px solid ${priceBdr}`,
+                fontFamily: "var(--font-mono), monospace", fontSize: "0.7rem",
+                lineHeight: 1,
+                whiteSpace: "nowrap",
+              }}
+            >
+              <span style={{ color: mutedCol }}>ZEC</span>
+              <span style={{ color: mainCol, fontWeight: 600 }} suppressHydrationWarning>
+                ${price.toFixed(2)}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 

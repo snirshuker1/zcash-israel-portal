@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Shield, Layers, TrendingUp } from "lucide-react";
+import { Shield, TrendingUp } from "lucide-react";
 import useSWR from "swr";
 import ChartModal, { ChartType } from "./ChartModal";
 
@@ -111,7 +111,6 @@ export default function MetricsTicker() {
 
   const { data: stats, isLoading } = useSWR("/api/zcash/stats", fetcher, { refreshInterval: 60_000 });
 
-  const blockHeight: number = stats?.blockHeight ?? 2_571_844;
   const priceUsd: number | null = stats?.priceUsd ?? null;
   const shieldedTotal: number | null = stats?.shieldedTotal ?? null;
   const shieldedOrchard: number | null = stats?.shieldedOrchard ?? null;
@@ -128,19 +127,6 @@ export default function MetricsTicker() {
   }
 
   const cards: Omit<CardProps, "onOpen" | "index">[] = [
-    {
-      icon: <Layers size={12} style={{ color: "#666" }} />,
-      techLabel: "BLOCK HEIGHT",
-      hebrewLabel: "גובה הבלוק הנוכחי",
-      value: (
-        <Ltr>
-          <span className="tabular-nums" suppressHydrationWarning>
-            {isLoading ? "..." : blockHeight.toLocaleString("en-US")}
-          </span>
-        </Ltr>
-      ),
-      chartType: "blocks",
-    },
     {
       icon: <Shield size={12} style={{ color: "#666" }} />,
       techLabel: "SHIELDED POOL",
