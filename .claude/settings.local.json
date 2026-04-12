@@ -1,7 +1,37 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git checkout:*)",
+      "Bash(git merge test --no-ff -m ':*)",
+      "Bash(git push:*)",
+      "Bash(npx tsc:*)",
+      "Bash(echo \"started, pid: $!\")",
+      "Bash(curl -s -o /dev/null -w \"Status: %{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(curl -s http://localhost:3000/)",
+      "Bash(curl -s http://localhost:3000/_next/static/chunks/%5Broot-of-the-server%5D__0n_5ezf._.css)",
+      "Bash(curl -s http://localhost:3000/ -H \"User-Agent: Mozilla/5.0 \\(iPhone; CPU iPhone OS 17_0 like Mac OS X\\) AppleWebKit/605.1.15\" -o /dev/null -w \"Status: %{http_code}\\\\n\")",
+      "Bash(curl -s http://localhost:3000/immersive -o /dev/null -w \"Immersive: %{http_code}\\\\n\")",
+      "Bash(curl -s http://localhost:3000/guides/start -o /dev/null -w \"Guides: %{http_code}\\\\n\")",
+      "Bash(curl -s http://localhost:3000/ -o /dev/null -w \"Home: %{http_code}\\\\n\")",
+      "Bash(grep -oE 'nav-mobile-only[^>]*>.{0,300}')",
+      "WebSearch",
+      "WebFetch(domain:zodl.com)",
+      "Bash(curl -s -L -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36\" https://zodl.com/)",
+      "Bash(curl -sI -L -A \"Mozilla/5.0\" https://zodl.com/wp-content/uploads/2026/01/logo-zodl-white.png)",
+      "Bash(curl -sI -L -A \"Mozilla/5.0\" https://zodl.com/wp-content/uploads/2026/01/logo-zodl.svg)",
+      "Bash(curl -sI -L -A Mozilla/5.0 https://zodl.com/wp-content/uploads/2026/01/__TRACKED_VAR__)",
+      "Bash(curl -sI -L -A \"Mozilla/5.0\" \"https://zodl.com/wp-content/uploads/2026/01/icon-zodl.png\")",
+      "Bash(curl -sI -L -A \"Mozilla/5.0\" \"https://zodl.com/favicon.ico\")",
+      "Bash(curl -sL -A \"Mozilla/5.0\" \"https://zodl.com/wp-content/uploads/2026/01/logo-zodl-white.png\" -o C:/Users/User/Desktop/zcash-israel-portal/public/assets/zodl-logo.png)",
+      "Bash(curl -sL -A \"Mozilla/5.0\" \"https://zodl.com/wp-content/uploads/2026/01/icon-zodl.png\" -o C:/Users/User/Desktop/zcash-israel-portal/public/assets/zodl-icon.png)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(curl -s http://localhost:3000/api/zcash/stats)",
+      "Bash(curl -s http://localhost:3000/ -o /tmp/homepage.html)",
+      "Bash(curl:*)",
+      "Bash(npx eslint:*)"
     ]
   }
 }
