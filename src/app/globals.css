@@ -349,6 +349,17 @@ img, svg, video, canvas {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
+   Supporters desktop — balance trailing orphan row.
+   With the 5-col grid and 12 supporters, the last row has only 2 items.
+   Shift them one column so they sit visually centered instead of
+   hugging the row start. Mobile overrides this with `display: flex`
+   so the rule has no effect on the carousel.
+   ───────────────────────────────────────────────────────────────────────── */
+.supporters-grid > :nth-child(11):nth-last-child(2) {
+  grid-column-start: 2;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
    Supporters mobile carousel (≤ 767px / below Tailwind md)
    - Exactly 3 compact cards visible at once, native scroll-snap swipe.
    - Scrollbar hidden for a clean app-like feel.
