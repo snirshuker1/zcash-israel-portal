@@ -386,8 +386,8 @@ export default function SupportersSection() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
-            gap: 18,
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))',
+            gap: 14,
             justifyItems: 'stretch',
           }}
         >

@@ -44,6 +44,7 @@ html {
   color: #09090b;
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -51,6 +52,13 @@ body {
   color: #09090b;
   font-family: "Inter", system-ui, sans-serif;
   line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Prevent horizontal overflow on narrow viewports */
+img, svg, video, canvas {
+  max-width: 100%;
+  height: auto;
 }
 
 .font-data {
@@ -147,4 +155,90 @@ body {
 ::selection {
   background-color: rgba(243, 177, 50, 0.2);
   color: #09090b;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Mobile overrides (≤ 640px)
+   Components use inline styles, so overrides need !important.
+   ───────────────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Hero */
+  #hero {
+    padding: 88px 16px 48px !important;
+    min-height: auto !important;
+  }
+  #hero > div {
+    gap: 32px !important;
+  }
+  #hero h1 {
+    font-size: clamp(2.1rem, 11vw, 3rem) !important;
+    margin-bottom: 18px !important;
+  }
+  #hero p {
+    font-size: 1.05rem !important;
+  }
+
+  /* Metrics dark band */
+  #metrics {
+    padding: 48px 16px !important;
+  }
+
+  /* Timeline */
+  #timeline {
+    padding: 56px 16px !important;
+  }
+  #timeline > div > div > div {
+    padding: 32px 22px !important;
+    border-radius: 16px !important;
+  }
+  #timeline h2 {
+    font-size: 1.7rem !important;
+  }
+  #timeline button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Ideological CTA */
+  #cta {
+    padding: 56px 0 !important;
+  }
+  #cta p:nth-of-type(1) {
+    font-size: 1.55rem !important;
+  }
+
+  /* Supporters */
+  #supporters {
+    padding: 64px 16px !important;
+  }
+
+  /* FAQ */
+  #faq {
+    padding: 72px 0 !important;
+  }
+  #faq button {
+    padding: 18px 18px !important;
+    gap: 10px !important;
+  }
+  #faq button span span:nth-child(2) {
+    font-size: 0.95rem !important;
+  }
+
+  /* Footer */
+  footer {
+    padding: 40px 20px 28px !important;
+  }
+  footer > div > div:first-child {
+    gap: 28px !important;
+  }
+  footer > div > div:first-child > div:nth-child(2) {
+    gap: 28px !important;
+  }
+
+  /* Navbar price pill hides naturally via md:hidden */
+}
+
+/* Thinner scrollbar feel on tablets/phones */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar { width: 0; }
 }

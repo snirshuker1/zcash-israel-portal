@@ -196,7 +196,7 @@ export default function HeroSection() {
         dir="rtl"
       >
         {/* ── Text content ── */}
-        <div style={{ flex: "1 1 440px", minWidth: 0 }}>
+        <div style={{ flex: "1 1 320px", minWidth: 0 }}>
 
           {/* Protocol tag */}
           <motion.div
@@ -368,7 +368,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, x: -24 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          style={{ flex: "1 1 480px", minWidth: 0, display: "flex", justifyContent: "center" }}
+          style={{ flex: "1 1 300px", minWidth: 0, width: "100%", display: "flex", justifyContent: "center" }}
           dir="ltr"
         >
           <ShieldedTxSVG />

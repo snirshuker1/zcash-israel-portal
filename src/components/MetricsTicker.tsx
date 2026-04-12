@@ -181,7 +181,7 @@ export default function MetricsTicker() {
 
   return (
     <>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 160px), 1fr))", gap: 12 }}>
         {cards.map((card, i) => (
           <MetricCard key={i} {...card} index={i} onOpen={setActiveChart} />
         ))}
