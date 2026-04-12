@@ -158,6 +158,14 @@ img, svg, video, canvas {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
+   ShieldedTxSVG — desktop defaults
+   The badge slot is layout-transparent on desktop so wrapping the badge
+   doesn't introduce an extra flex gap; mobile turns it into a reserved
+   fixed-height slot (see below) to keep the frame from resizing.
+   ───────────────────────────────────────────────────────────────────────── */
+.shield-tx-badge-slot { display: contents; }
+
+/* ─────────────────────────────────────────────────────────────────────────
    Navbar visibility — overrides inline display styles via specificity
    ───────────────────────────────────────────────────────────────────────── */
 .nav-mobile-only { display: none !important; }
@@ -204,6 +212,27 @@ img, svg, video, canvas {
   }
   #hero > div > div:first-child > div:last-child > div > div:first-child {
     font-size: 1.15rem !important;
+  }
+
+  /* ── ShieldedTxSVG (mobile) ─────────────────────────────────────────── */
+  /* Strip the window-chrome filename and the status checklist, tighten
+     the body padding, and reserve a fixed slot for the PROOF VERIFIED
+     badge so the frame never resizes during the shielding loop. */
+  .shield-tx-title {
+    display: none !important;
+  }
+  .shield-tx-body {
+    padding: 18px 16px !important;
+    gap: 14px !important;
+  }
+  .shield-tx-checklist {
+    display: none !important;
+  }
+  .shield-tx-badge-slot {
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 44px;
   }
 
   /* ── Metrics dark band ──────────────────────────────────────────────── */

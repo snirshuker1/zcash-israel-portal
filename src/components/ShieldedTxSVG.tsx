@@ -86,14 +86,14 @@ export default function ShieldedTxSVG() {
           <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#f59e0b", display: "block" }} />
           <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#22c55e", display: "block" }} />
         </div>
-        <span style={{ color: "#52525b", fontSize: "0.75rem", letterSpacing: "0.1em" }}>
+        <span className="shield-tx-title" style={{ color: "#52525b", fontSize: "0.75rem", letterSpacing: "0.1em" }}>
           zcash · shield-transaction.ts
         </span>
         <span style={{ color: AMBER, fontSize: "0.75rem" }}>◎</span>
       </div>
 
       {/* Body */}
-      <div style={{ padding: "26px 22px", display: "flex", flexDirection: "column", gap: 18 }} dir="ltr">
+      <div className="shield-tx-body" style={{ padding: "26px 22px", display: "flex", flexDirection: "column", gap: 18 }} dir="ltr">
 
         {/* FROM */}
         <div>
@@ -198,6 +198,7 @@ export default function ShieldedTxSVG() {
 
         {/* Status checklist */}
         <div
+          className="shield-tx-checklist"
           style={{
             borderTop: "1px solid #1f1f1f",
             paddingTop: 12,
@@ -228,42 +229,46 @@ export default function ShieldedTxSVG() {
           ))}
         </div>
 
-        {/* PROOF VERIFIED badge */}
-        <AnimatePresence>
-          {phase === 3 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                padding: "10px 16px",
-                borderRadius: 10,
-                background: `rgba(243,177,50,0.08)`,
-                border: `1px solid ${AMBER}40`,
-              }}
-            >
-              <span style={{ color: AMBER, fontSize: "0.85rem", letterSpacing: "0.12em", fontWeight: 600 }}>
-                ◎ PROOF VERIFIED
-              </span>
-              <motion.span
-                animate={{ opacity: [1, 0.3, 1] }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
+        {/* PROOF VERIFIED badge — wrapper is display:contents on desktop so
+            it stays layout-transparent; on mobile it becomes a fixed-height
+            slot that reserves space whether or not the badge is mounted. */}
+        <div className="shield-tx-badge-slot">
+          <AnimatePresence>
+            {phase === 3 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: AMBER,
-                  display: "inline-block",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  padding: "10px 16px",
+                  borderRadius: 10,
+                  background: `rgba(243,177,50,0.08)`,
+                  border: `1px solid ${AMBER}40`,
                 }}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+              >
+                <span style={{ color: AMBER, fontSize: "0.85rem", letterSpacing: "0.12em", fontWeight: 600 }}>
+                  ◎ PROOF VERIFIED
+                </span>
+                <motion.span
+                  animate={{ opacity: [1, 0.3, 1] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: AMBER,
+                    display: "inline-block",
+                  }}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
