@@ -1,6 +1,14 @@
 'use client'
 import { useState } from 'react'
-import { ChevronDown, BookOpen, Shield, Zap, ArrowRight } from 'lucide-react'
+import {
+  ChevronDown,
+  BookOpen,
+  Shield,
+  Zap,
+  ArrowRight,
+  ArrowLeft,
+  Coins,
+} from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import Footer from '@/components/Footer'
@@ -20,7 +28,7 @@ function Ltr({ children }: { children: React.ReactNode }) {
 interface AccordionItem {
   value: string
   icon: React.ElementType
-  question: string
+  question: React.ReactNode
   answer: React.ReactNode
 }
 
@@ -128,11 +136,140 @@ function AccordionItem({
 
 // ─── Content ─────────────────────────────────────────────────────────────────
 
+// Shared styles for the "איך משיגים ZEC" blocks
+const GetZecBlock = ({
+  title,
+  text,
+  cta,
+  href,
+}: {
+  title: React.ReactNode
+  text: React.ReactNode
+  cta: React.ReactNode
+  href: string
+}) => (
+  <div
+    style={{
+      border: '1px solid #E4E4E7',
+      borderRadius: 10,
+      padding: '18px 20px',
+      backgroundColor: '#FFFFFF',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8,
+    }}
+  >
+    <h4
+      style={{
+        margin: 0,
+        fontSize: '0.92rem',
+        fontWeight: 700,
+        color: '#09090B',
+        lineHeight: 1.4,
+      }}
+    >
+      {title}
+    </h4>
+    <p
+      style={{
+        margin: 0,
+        fontSize: '0.85rem',
+        color: '#71717A',
+        lineHeight: 1.7,
+      }}
+    >
+      {text}
+    </p>
+    <Link
+      href={href}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        marginTop: 4,
+        fontSize: '0.8rem',
+        fontWeight: 600,
+        color: AMBER,
+        textDecoration: 'none',
+        alignSelf: 'flex-start',
+        padding: '4px 0',
+        transition: 'gap 0.18s ease',
+      }}
+      onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.gap = '10px')}
+      onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.gap = '6px')}
+    >
+      <span>{cta}</span>
+      <ArrowLeft size={14} />
+    </Link>
+  </div>
+)
+
 const items: AccordionItem[] = [
+  {
+    value: 'matters',
+    icon: Zap,
+    question: 'למה זה חשוב?',
+    answer: (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 14 }}>
+        <p style={{ margin: 0 }}>
+          <Ltr>Bitcoin</Ltr> ו-<Ltr>Ethereum</Ltr> הם <strong>שקופים לחלוטין</strong> — כל
+          אחד עם גישה לאינטרנט יכול לראות את כל ההיסטוריה הפיננסית שלך, הרכישות שלך, ממי
+          קיבלת ולמי שלחת.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {[
+            "כל עסקה שלך מאוחסנת לנצח על הבלוקצ'יין ונגישה לכל",
+            'בורסות יכולות לחסום כספים בהתבסס על היסטוריית עסקאות',
+            'גורמים עוינים יכולים לזהות יעדי תשלום ולמפות רשת קשרים',
+            'פרסומאים ועסקים מבצעים פרופיילינג פיננסי מפורט',
+          ].map((point, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <span
+                style={{ color: '#EF4444', marginTop: 1, flexShrink: 0, fontWeight: 600 }}
+              >
+                ✕
+              </span>
+              <span style={{ fontSize: '0.85rem', color: '#71717A' }}>{point}</span>
+            </div>
+          ))}
+        </div>
+        <div
+          style={{
+            borderTop: '1px solid #E4E4E7',
+            paddingTop: 14,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+          }}
+        >
+          {[
+            'פרטיות ברמת הפרוטוקול — לא תוסף, לא שכבה שנייה',
+            'הסכום, השולח והמקבל מוגנים כברירת מחדל',
+            'ניתן לחשוף נתונים רצוניים עם Viewing Keys לצרכי ציות',
+          ].map((point, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <span style={{ color: AMBER, marginTop: 1, flexShrink: 0, fontWeight: 600 }}>
+                ✓
+              </span>
+              <span style={{ fontSize: '0.85rem', color: '#71717A' }}>{point}</span>
+            </div>
+          ))}
+        </div>
+        <p style={{ margin: 0, fontSize: '0.85rem' }}>
+          <Ltr>Zcash</Ltr> פותר את הבעיות הללו ברמת הפרוטוקול — כחלק מהיסוד המתמטי של כל
+          עסקה, באמצעות <Ltr>zk-SNARKs</Ltr> ועדכון <Ltr>Halo 2</Ltr>.
+        </p>
+      </div>
+    ),
+  },
   {
     value: 'wallet',
     icon: BookOpen,
-    question: 'כיצד לפתוח ארנק?',
+    question: (
+      <>
+        כיצד לפתוח ארנק <Ltr>Zodl</Ltr>?
+      </>
+    ),
     answer: (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 14 }}>
         <p style={{ margin: 0 }}>
@@ -183,6 +320,66 @@ const items: AccordionItem[] = [
           <strong style={{ color: '#09090B' }}>חשוב:</strong> אל תשמור את ה-
           <Ltr>seed phrase</Ltr> בענן, בצילום מסך, או בדוא&quot;ל. מי שמחזיק ב-
           <Ltr>seed phrase</Ltr> שולט בכספים.
+        </div>
+      </div>
+    ),
+  },
+  {
+    value: 'get-zec',
+    icon: Coins,
+    question: (
+      <>
+        איך משיגים <Ltr>ZEC</Ltr>?
+      </>
+    ),
+    answer: (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 18, paddingTop: 14 }}>
+        <p style={{ margin: 0 }}>
+          קיימות מספר דרכים מרכזיות להשגת <Ltr>ZEC</Ltr>, בהתאם לנקודת הפתיחה שלכם:
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <GetZecBlock
+            title="למשתמשים מתחילים (קנייה בכסף רגיל):"
+            text={
+              <>
+                רכישה באמצעות בורסות בינלאומיות או חלפנים מקומיים. דורש תהליך הרשמה קצר,
+                ולאחריו משיכת המטבעות לארנק ה-<Ltr>Zodl</Ltr>.
+              </>
+            }
+            cta="למדריך הקנייה בבורסה"
+            href="/guides/buy-exchange"
+          />
+          <GetZecBlock
+            title="למחזיקי קריפטו (המרה מהירה ללא זיהוי):"
+            text={
+              <>
+                אם יש ברשותכם מטבעות אחרים (כמו <Ltr>USDT</Ltr>, ביטקוין או אתריום), הדרך
+                החלקה ביותר היא להמיר אותם ישירות ל-<Ltr>ZEC</Ltr> באמצעות{' '}
+                <Ltr>NEAR Intents</Ltr>.
+              </>
+            }
+            cta={
+              <>
+                למדריך ההמרה ב-<Ltr>NEAR Intents</Ltr>
+              </>
+            }
+            href="/guides/near-intents"
+          />
+          <GetZecBlock
+            title="למתקדמים (אנונימיות מלאה):"
+            text={
+              <>
+                קנייה ישירה מאנשים אחרים (<Ltr>P2P</Ltr>) או קבלת <Ltr>ZEC</Ltr> כתשלום על
+                שירותים.
+              </>
+            }
+            cta={
+              <>
+                איך לקבל <Ltr>ZEC</Ltr> באופן פרטי
+              </>
+            }
+            href="/guides/receive-privately"
+          />
         </div>
       </div>
     ),
@@ -246,69 +443,12 @@ const items: AccordionItem[] = [
       </div>
     ),
   },
-  {
-    value: 'matters',
-    icon: Zap,
-    question: 'למה זה חשוב?',
-    answer: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 14 }}>
-        <p style={{ margin: 0 }}>
-          <Ltr>Bitcoin</Ltr> ו-<Ltr>Ethereum</Ltr> הם <strong>שקופים לחלוטין</strong> — כל
-          אחד עם גישה לאינטרנט יכול לראות את כל ההיסטוריה הפיננסית שלך, הרכישות שלך, ממי
-          קיבלת ולמי שלחת.
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {[
-            "כל עסקה שלך מאוחסנת לנצח על הבלוקצ'יין ונגישה לכל",
-            'בורסות יכולות לחסום כספים בהתבסס על היסטוריית עסקאות',
-            'גורמים עוינים יכולים לזהות יעדי תשלום ולמפות רשת קשרים',
-            'פרסומאים ועסקים מבצעים פרופיילינג פיננסי מפורט',
-          ].map((point, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <span
-                style={{ color: '#EF4444', marginTop: 1, flexShrink: 0, fontWeight: 600 }}
-              >
-                ✕
-              </span>
-              <span style={{ fontSize: '0.85rem', color: '#71717A' }}>{point}</span>
-            </div>
-          ))}
-        </div>
-        <div
-          style={{
-            borderTop: '1px solid #E4E4E7',
-            paddingTop: 14,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 8,
-          }}
-        >
-          {[
-            'פרטיות ברמת הפרוטוקול — לא תוסף, לא שכבה שנייה',
-            'הסכום, השולח והמקבל מוגנים כברירת מחדל',
-            'ניתן לחשוף נתונים רצוניים עם Viewing Keys לצרכי ציות',
-          ].map((point, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <span style={{ color: AMBER, marginTop: 1, flexShrink: 0, fontWeight: 600 }}>
-                ✓
-              </span>
-              <span style={{ fontSize: '0.85rem', color: '#71717A' }}>{point}</span>
-            </div>
-          ))}
-        </div>
-        <p style={{ margin: 0, fontSize: '0.85rem' }}>
-          <Ltr>Zcash</Ltr> פותר את הבעיות הללו ברמת הפרוטוקול — כחלק מהיסוד המתמטי של כל
-          עסקה, באמצעות <Ltr>zk-SNARKs</Ltr> ועדכון <Ltr>Halo 2</Ltr>.
-        </p>
-      </div>
-    ),
-  },
 ]
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function GuidesStartPage() {
-  const [openItem, setOpenItem] = useState<string | null>('wallet')
+  const [openItem, setOpenItem] = useState<string | null>('matters')
 
   const toggle = (value: string) =>
     setOpenItem((prev) => (prev === value ? null : value))
@@ -440,62 +580,121 @@ export default function GuidesStartPage() {
             ))}
           </div>
 
-          {/* CTA strip */}
+          {/* Premium CTA card */}
           <div
             style={{
               maxWidth: 760,
-              margin: '48px auto 0',
+              margin: '56px auto 0',
+              position: 'relative',
               border: '1px solid #E4E4E7',
-              borderRadius: 12,
-              padding: '22px 24px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: 16,
-              backgroundColor: '#FAFAFA',
+              borderRadius: 16,
+              backgroundColor: '#FFFFFF',
+              overflow: 'hidden',
+              boxShadow: '0 1px 2px rgba(9, 9, 11, 0.04)',
             }}
           >
-            <div>
-              <p
+            {/* top amber hairline */}
+            <div
+              style={{
+                height: 3,
+                width: '100%',
+                background: `linear-gradient(90deg, transparent 0%, ${AMBER} 50%, transparent 100%)`,
+              }}
+            />
+            <div
+              style={{
+                padding: 'clamp(28px, 4vw, 44px)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 20,
+              }}
+            >
+              <div
                 style={{
-                  fontSize: '0.9rem',
-                  fontWeight: 600,
-                  color: '#09090B',
-                  marginBottom: 4,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                  maxWidth: 560,
                 }}
               >
-                מוכן לרכוש <Ltr>ZEC</Ltr>?
-              </p>
-              <p style={{ fontSize: '0.8rem', color: '#71717A', margin: 0 }}>
-                השתמש ב-<Ltr>Near Intents</Ltr> לרכישה ישירה ללא KYC מלא.
-              </p>
+                <span
+                  dir="ltr"
+                  style={{
+                    display: 'inline-block',
+                    fontFamily: 'var(--font-mono), monospace',
+                    fontSize: '0.65rem',
+                    color: AMBER,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    fontWeight: 600,
+                  }}
+                >
+                  NEXT_STEP
+                </span>
+                <h3
+                  style={{
+                    margin: 0,
+                    fontSize: 'clamp(1.35rem, 2.6vw, 1.75rem)',
+                    fontWeight: 700,
+                    letterSpacing: '-0.02em',
+                    color: '#09090B',
+                    lineHeight: 1.25,
+                  }}
+                >
+                  הזמן לעבור לכלכלה פרטית
+                </h3>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: '0.95rem',
+                    color: '#71717A',
+                    lineHeight: 1.7,
+                  }}
+                >
+                  מוכנים לרכוש <Ltr>ZEC</Ltr>? המירו מטבעות דיגיטליים קיימים ל-
+                  <Ltr>Zcash</Ltr> ישירות לארנק שלכם, ללא תהליכי הרשמה ובתעריפים המשתלמים
+                  ביותר.
+                </p>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+                <a
+                  href="https://near-intents.org/?from=USDT&to=ZEC"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    backgroundColor: '#09090B',
+                    color: '#FFFFFF',
+                    fontSize: '0.9rem',
+                    fontWeight: 600,
+                    padding: '13px 22px',
+                    borderRadius: 10,
+                    textDecoration: 'none',
+                    border: `1px solid #09090B`,
+                    transition: 'transform 0.18s ease, background-color 0.18s',
+                  }}
+                  onMouseEnter={(e) => {
+                    const el = e.currentTarget as HTMLElement
+                    el.style.backgroundColor = AMBER
+                    el.style.borderColor = AMBER
+                    el.style.color = '#09090B'
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget as HTMLElement
+                    el.style.backgroundColor = '#09090B'
+                    el.style.borderColor = '#09090B'
+                    el.style.color = '#FFFFFF'
+                  }}
+                >
+                  <span>
+                    פתח את <Ltr>NEAR Intents</Ltr>
+                  </span>
+                  <ArrowLeft size={16} />
+                </a>
+              </div>
             </div>
-            <a
-              href="https://near-intents.org/?from=USDT&to=ZEC"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                backgroundColor: AMBER,
-                color: '#09090B',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                padding: '10px 18px',
-                borderRadius: 8,
-                textDecoration: 'none',
-                flexShrink: 0,
-                transition: 'opacity 0.15s',
-              }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = '0.85')}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = '1')}
-            >
-              <span dir="ltr" className="inline-block">
-                Buy ZEC →
-              </span>
-            </a>
           </div>
         </div>
       </main>
