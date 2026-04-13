@@ -1,5 +1,6 @@
 'use client'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import {
   ChevronDown,
   BookOpen,
@@ -56,7 +57,8 @@ function AccordionItem({
         onClick={onToggle}
         style={{
           width: '100%',
-          padding: '18px 20px',
+          padding: 'clamp(16px, 3.2vw, 20px) clamp(16px, 3.6vw, 22px)',
+          minHeight: 60,
           backgroundColor: isOpen ? '#FFFBEB' : '#FFFFFF',
           border: 'none',
           cursor: 'pointer',
@@ -86,10 +88,11 @@ function AccordionItem({
           </div>
           <span
             style={{
-              fontSize: '0.95rem',
+              fontSize: 'clamp(0.9rem, 2.4vw, 0.98rem)',
               fontWeight: 600,
               color: '#09090B',
               textAlign: 'right',
+              lineHeight: 1.35,
             }}
           >
             {item.question}
@@ -118,7 +121,7 @@ function AccordionItem({
           >
             <div
               style={{
-                padding: '4px 20px 22px',
+                padding: '6px clamp(16px, 3.6vw, 22px) clamp(18px, 4vw, 24px)',
                 fontSize: '0.875rem',
                 color: '#71717A',
                 lineHeight: 1.75,
@@ -210,60 +213,66 @@ const items: AccordionItem[] = [
     icon: Zap,
     question: 'למה זה חשוב?',
     answer: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 14 }}>
-        <p style={{ margin: 0 }}>
-          <Ltr>Bitcoin</Ltr> ו-<Ltr>Ethereum</Ltr> הם <strong>שקופים לחלוטין</strong> — כל
-          אחד עם גישה לאינטרנט יכול לראות את כל ההיסטוריה הפיננסית שלך, הרכישות שלך, ממי
-          קיבלת ולמי שלחת.
-        </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 22, paddingTop: 16 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {[
-            "כל עסקה שלך מאוחסנת לנצח על הבלוקצ'יין ונגישה לכל",
-            'בורסות יכולות לחסום כספים בהתבסס על היסטוריית עסקאות',
-            'גורמים עוינים יכולים לזהות יעדי תשלום ולמפות רשת קשרים',
-            'פרסומאים ועסקים מבצעים פרופיילינג פיננסי מפורט',
-          ].map((point, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <span
-                style={{ color: '#EF4444', marginTop: 1, flexShrink: 0, fontWeight: 600 }}
-              >
-                ✕
-              </span>
-              <span style={{ fontSize: '0.85rem', color: '#71717A' }}>{point}</span>
-            </div>
-          ))}
+          <h3
+            style={{
+              margin: 0,
+              fontSize: '0.92rem',
+              fontWeight: 700,
+              color: '#0f172a',
+              lineHeight: 1.4,
+            }}
+          >
+            החזון: מזומן דיגיטלי אמיתי
+          </h3>
+          <p style={{ margin: 0, fontSize: '0.875rem', color: '#1e293b', lineHeight: 1.75 }}>
+            החזון המקורי של יוצר הביטקוין, סאטושי נאקאמוטו, היה ליצור רשת שמתנהגת כמו מזומן
+            פיזי. בפועל, ביטקוין נבנה כיומן פומבי ושקוף לחלוטין – המשמעות היא שכל ההיסטוריה
+            הפיננסית, היתרה והעסקאות שלכם גלויות לעיני כל.
+          </p>
         </div>
-        <div
-          style={{
-            borderTop: '1px solid #E4E4E7',
-            paddingTop: 14,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 8,
-          }}
-        >
-          {[
-            'פרטיות ברמת הפרוטוקול — לא תוסף, לא שכבה שנייה',
-            'הסכום, השולח והמקבל מוגנים כברירת מחדל',
-            'ניתן לחשוף נתונים רצוניים עם Viewing Keys לצרכי ציות',
-          ].map((point, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <span style={{ color: AMBER, marginTop: 1, flexShrink: 0, fontWeight: 600 }}>
-                ✓
-              </span>
-              <span style={{ fontSize: '0.85rem', color: '#71717A' }}>{point}</span>
-            </div>
-          ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <h3
+            style={{
+              margin: 0,
+              fontSize: '0.92rem',
+              fontWeight: 700,
+              color: '#0f172a',
+              lineHeight: 1.4,
+            }}
+          >
+            הפתרון של <Ltr>Zcash</Ltr>: פרטיות מתמטית
+          </h3>
+          <p style={{ margin: 0, fontSize: '0.875rem', color: '#1e293b', lineHeight: 1.75 }}>
+            <Ltr>Zcash</Ltr> נוצר כדי לתקן את הפגם הזה ולהגשים את חזון המזומן הדיגיטלי.
+            באמצעות פריצת דרך הצפנתית (<Ltr>zk-SNARKs</Ltr>), הרשת מאמתת עסקאות בצורה
+            מאובטחת, מבלי לחשוף את זהות השולח, המקבל או את הסכום.
+          </p>
         </div>
-        <p style={{ margin: 0, fontSize: '0.85rem' }}>
-          <Ltr>Zcash</Ltr> פותר את הבעיות הללו ברמת הפרוטוקול — כחלק מהיסוד המתמטי של כל
-          עסקה, באמצעות <Ltr>zk-SNARKs</Ltr> ועדכון <Ltr>Halo 2</Ltr>.
-        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <h3
+            style={{
+              margin: 0,
+              fontSize: '0.92rem',
+              fontWeight: 700,
+              color: '#0f172a',
+              lineHeight: 1.4,
+            }}
+          >
+            שליטה מלאה (<Ltr>Opt-in</Ltr>)
+          </h3>
+          <p style={{ margin: 0, fontSize: '0.875rem', color: '#1e293b', lineHeight: 1.75 }}>
+            הפרטיות ב-<Ltr>Zcash</Ltr> היא ברירת מחדל ברמת הפרוטוקול, לא תוסף חיצוני. עם
+            זאת, במידת הצורך (למשל דיווחי מס או ביקורת), המערכת מאפשרת לכם לשתף מידע ספציפי
+            באופן רצוני לחלוטין באמצעות מפתחות צפייה (<Ltr>Viewing Keys</Ltr>).
+          </p>
+        </div>
       </div>
     ),
   },
   {
-    value: 'wallet',
+    value: 'open-wallet',
     icon: BookOpen,
     question: (
       <>
@@ -271,10 +280,10 @@ const items: AccordionItem[] = [
       </>
     ),
     answer: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 14 }}>
-        <p style={{ margin: 0 }}>
-          <Ltr>Zodl</Ltr> הוא ארנק הנייד הרשמי של <Ltr>Zcash</Ltr>. הוא מספק ממשק פשוט ומאובטח לניהול כספים בצורה
-          מוגנת מלאה ברמת הפרוטוקול.
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 14 }}>
+        <p style={{ margin: 0, fontSize: '0.875rem', color: '#1e293b', lineHeight: 1.75 }}>
+          <Ltr>Zodl</Ltr> הוא הארנק הנייד המומלץ עבור <Ltr>Zcash</Ltr>. הוא מספק ממשק פשוט,
+          נקי ומאובטח לניהול הכספים שלכם, עם תמיכה מלאה בפרטיות ברמת הפרוטוקול.
         </p>
         <ol
           style={{
@@ -284,42 +293,119 @@ const items: AccordionItem[] = [
             flexDirection: 'column',
             gap: 10,
             margin: 0,
+            fontSize: '0.875rem',
+            color: '#1e293b',
+            lineHeight: 1.75,
           }}
         >
-          {[
-            <>
-              הורד את <Ltr>Zodl</Ltr> מ-<Ltr>App Store</Ltr> או <Ltr>Google Play</Ltr>
-            </>,
-            <>
-              בחר &quot;ארנק חדש&quot; וכתוב את ה-<Ltr>seed phrase</Ltr> (12 מילים) במקום בטוח
-              ומנותק מהאינטרנט — עדיף על נייר
-            </>,
-            <>
-              המתן לסנכרון הרשת — עשוי להימשך מספר דקות בהתאם לגיל הארנק
-            </>,
-            <>
-              ארנקך מוכן. כתובת <Ltr>Z-address</Ltr> (מתחילה ב-<Ltr>u1</Ltr>) מאפשרת עסקאות
-              מוגנות מלאות
-            </>,
-          ].map((step, i) => (
-            <li key={i} style={{ paddingRight: 4 }}>
-              {step}
-            </li>
-          ))}
+          <li style={{ paddingRight: 4 }}>
+            הורידו את אפליקציית <Ltr>Zodl</Ltr> מחנות האפליקציות (<Ltr>App Store</Ltr> או{' '}
+            <Ltr>Google Play</Ltr>).
+          </li>
+          <li style={{ paddingRight: 4 }}>
+            בחרו באפשרות &quot;יצירת ארנק חדש&quot; (<Ltr>Create New Wallet</Ltr>).
+          </li>
+          <li style={{ paddingRight: 4 }}>
+            גבו את מילות השחזור: האפליקציה תציג לכם 12 מילים. כתבו אותן על דף נייר ושמרו
+            במקום בטוח.{' '}
+            <strong style={{ color: '#09090B' }}>כלל ברזל:</strong> אל תשמרו את המילים בענן,
+            בצילום מסך או בדוא&quot;ל. מי שמחזיק במילים – מחזיק בכסף.
+          </li>
+          <li style={{ paddingRight: 4 }}>
+            המתינו לסנכרון הרשת – תהליך ראשוני שעשוי לקחת מספר דקות.
+          </li>
+          <li style={{ paddingRight: 4 }}>
+            הארנק מוכן! כעת יש לכם כתובת לקבלת כספים (כתובות מאוחדות ופרטיות ב-
+            <Ltr>Zcash</Ltr> יתחילו לרוב באותיות <Ltr>u</Ltr> או <Ltr>z</Ltr>).
+          </li>
         </ol>
+        {/* Premium highlight — Shielded Address power */}
         <div
           style={{
-            backgroundColor: '#FFFBEB',
-            border: '1px solid #F3B13230',
-            borderRadius: 8,
-            padding: '10px 14px',
-            fontSize: '0.8rem',
-            color: '#71717A',
+            backgroundColor: '#0D0D0D',
+            border: `1px solid ${AMBER}30`,
+            borderTop: `2px solid ${AMBER}`,
+            borderRadius: 10,
+            padding: '20px 22px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
           }}
         >
-          <strong style={{ color: '#09090B' }}>חשוב:</strong> אל תשמור את ה-
-          <Ltr>seed phrase</Ltr> בענן, בצילום מסך, או בדוא&quot;ל. מי שמחזיק ב-
-          <Ltr>seed phrase</Ltr> שולט בכספים.
+          <p
+            style={{
+              margin: 0,
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              color: AMBER,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              fontFamily: 'var(--font-mono), monospace',
+            }}
+          >
+            <Ltr>Shielded Address</Ltr>
+          </p>
+          <h4
+            style={{
+              margin: 0,
+              fontSize: '0.975rem',
+              fontWeight: 700,
+              color: '#F5F5F5',
+              lineHeight: 1.4,
+            }}
+          >
+            העוצמה של הכתובת המוגנת
+          </h4>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: '#A1A1AA', lineHeight: 1.8 }}>
+            ברגע שמישהו שולח לכם <Ltr>ZEC</Ltr> לכתובת המוגנת (המתחילה ב-<Ltr>u1</Ltr> או{' '}
+            <Ltr>z</Ltr>), קורה דבר מדהים: הכסף עובר תהליך של &quot;הגנה&quot; (
+            <Ltr>Shielding</Ltr>).
+          </p>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: '#A1A1AA', lineHeight: 1.8 }}>
+            עבור שאר העולם, הכסף פשוט{' '}
+            <strong style={{ color: '#F5F5F5' }}>נעלם מהרדאר</strong>. מהרגע שהסכום נחת
+            בארנק ה-<Ltr>Zodl</Ltr> שלכם, לאף אחד בעולם – כולל זה ששלח לכם את הכסף – אין
+            שום דרך לדעת מה היתרה שלכם, ממי עוד קיבלתם כסף, או מה אתם עושים איתו הלאה.
+          </p>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: '#A1A1AA', lineHeight: 1.8 }}>
+            זה לא סתם ארנק דיגיטלי, זה{' '}
+            <strong style={{ color: '#F5F5F5' }}>כספת מתמטית חסינה</strong>. אתם הופכים
+            להיות היחידים בעולם שרואים את הנתונים הללו. זו הפרטיות המוחלטת שסאטושי חלם
+            עליה, והיא נמצאת אצלכם בכיס.
+          </p>
+        </div>
+        {/* Caution — transparent addresses */}
+        <div
+          style={{
+            display: 'flex',
+            gap: 10,
+            alignItems: 'flex-start',
+            padding: '10px 14px',
+            backgroundColor: '#FAFAFA',
+            border: '1px solid #E4E4E7',
+            borderRadius: 8,
+          }}
+        >
+          <span style={{ fontSize: '0.8rem', flexShrink: 0, marginTop: 1 }}>⚠️</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: '0.775rem',
+                fontWeight: 700,
+                color: '#52525B',
+                lineHeight: 1.4,
+              }}
+            >
+              שימו לב לכתובות שקופות (<Ltr>Transparent</Ltr>)
+            </p>
+            <p style={{ margin: 0, fontSize: '0.775rem', color: '#71717A', lineHeight: 1.7 }}>
+              אם תבחרו להשתמש בכתובת שקופה (המתחילה ב-<Ltr>t</Ltr>), חשוב לדעת שהיא עובדת
+              בדיוק כמו ב-<Ltr>Bitcoin</Ltr>: היתרה וההיסטוריה של אותה כתובת גלויות לכולם.
+              היא נועדה בעיקר לצרכי תאימות מול בורסות ישנות. לפרטיות אמיתית — תמיד
+              השתמשו בכתובת המוגנת שלכם.
+            </p>
+          </div>
         </div>
       </div>
     ),
@@ -365,21 +451,6 @@ const items: AccordionItem[] = [
             }
             href="/guides/near-intents"
           />
-          <GetZecBlock
-            title="למתקדמים (אנונימיות מלאה):"
-            text={
-              <>
-                קנייה ישירה מאנשים אחרים (<Ltr>P2P</Ltr>) או קבלת <Ltr>ZEC</Ltr> כתשלום על
-                שירותים.
-              </>
-            }
-            cta={
-              <>
-                איך לקבל <Ltr>ZEC</Ltr> באופן פרטי
-              </>
-            }
-            href="/guides/receive-privately"
-          />
         </div>
       </div>
     ),
@@ -389,10 +460,10 @@ const items: AccordionItem[] = [
     icon: Shield,
     question: 'שליחת עסקאות מוגנות',
     answer: (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingTop: 14 }}>
-        <p style={{ margin: 0 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 14 }}>
+        <p style={{ margin: 0, fontSize: '0.875rem', color: '#1e293b', lineHeight: 1.75 }}>
           עסקאות מוגנות (<Ltr>Shielded Transactions</Ltr>) מסתירות את הסכום, כתובת השולח
-          וכתובת המקבל מכל צופה ברשת — תוך כדי אימות מתמטי מלא של תקינותן באמצעות{' '}
+          וכתובת המקבל מכל צופה ברשת — תוך שמירה על אימות מתמטי מלא באמצעות הוכחות{' '}
           <Ltr>zk-SNARKs</Ltr>.
         </p>
         <ol
@@ -403,42 +474,55 @@ const items: AccordionItem[] = [
             flexDirection: 'column',
             gap: 10,
             margin: 0,
+            fontSize: '0.875rem',
+            color: '#1e293b',
+            lineHeight: 1.75,
           }}
         >
-          {[
-            <>
-              בתוך <Ltr>Zodl</Ltr>, לחץ &quot;שלח&quot;
-            </>,
-            <>
-              הכנס את כתובת ה-<Ltr>Z-address</Ltr> של הנמען (מתחילה ב-<Ltr>u1</Ltr> עבור{' '}
-              <Ltr>Unified Address</Ltr>)
-            </>,
-            <>
-              הגדר סכום ו-<Ltr>memo</Ltr> אופציונלי — ה-<Ltr>memo</Ltr> מוצפן ואינו גלוי לצד
-              שלישי
-            </>,
-            <>
-              אשר — <Ltr>Zodl</Ltr> ייצור הוכחת <Ltr>zk-SNARK</Ltr> אוטומטית ויחתום את
-              העסקה
-            </>,
-          ].map((step, i) => (
-            <li key={i} style={{ paddingRight: 4 }}>
-              {step}
-            </li>
-          ))}
+          <li style={{ paddingRight: 4 }}>
+            בתוך אפליקציית <Ltr>Zodl</Ltr>, לחצו על כפתור השליחה (<Ltr>Send</Ltr>).
+          </li>
+          <li style={{ paddingRight: 4 }}>הדביקו את כתובת הנמען.</li>
+          <li style={{ paddingRight: 4 }}>
+            הגדירו את הסכום שתרצו להעביר. תוכלו גם להוסיף הערה (<Ltr>Memo</Ltr>) אופציונלית
+            – ההערה מוצפנת לחלוטין וגלויה אך ורק לנמען.
+          </li>
+          <li style={{ paddingRight: 4 }}>
+            אשרו את העסקה. הארנק ייצור הוכחת פרטיות באופן אוטומטי מאחורי הקלעים וישגר את
+            העסקה.
+          </li>
         </ol>
         <div
           style={{
-            backgroundColor: '#F4F4F5',
-            borderRadius: 8,
-            padding: '10px 14px',
-            fontSize: '0.8rem',
-            color: '#71717A',
+            borderRight: `3px solid #E4E4E7`,
+            paddingRight: 14,
+            paddingTop: 10,
+            paddingBottom: 10,
+            paddingLeft: 10,
+            backgroundColor: '#FAFAFA',
+            borderRadius: '0 6px 6px 0',
           }}
         >
-          <strong style={{ color: '#09090B' }}>שים לב:</strong> אם הנמען שולח לך כתובת{' '}
-          <Ltr>T-address</Ltr> (שקופה), העסקה תהיה גלויה לכולם — כמו ב-<Ltr>Bitcoin</Ltr>.
-          תמיד בקש <Ltr>Z-address</Ltr> לפרטיות מלאה.
+          <p
+            style={{
+              margin: '0 0 6px',
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              color: '#09090B',
+              lineHeight: 1.4,
+            }}
+          >
+            מה קורה כששולחים לכתובת שקופה?
+          </p>
+          <p style={{ margin: 0, fontSize: '0.825rem', color: '#52525B', lineHeight: 1.7 }}>
+            לעיתים תצטרכו לשלוח <Ltr>ZEC</Ltr> לכתובת שקופה (כתובת שמתחילה באות{' '}
+            <Ltr>t</Ltr>, למשל בהפקדה לבורסה). במקרה כזה, כתובת היעד והסכום יהיו גלויים
+            ברשת.{' '}
+            <strong style={{ color: '#09090B' }}>אבל הנה היתרון העצום:</strong> הפרטיות שלכם
+            כיוזמי העסקה נשמרת. היתרה בארנק שלכם, היסטוריית הפעולות שלכם והכתובת הפרטית
+            שלכם נשארים חסויים לחלוטין. איש לא יוכל לעקוב אחורה אל הארנק שלכם או לדעת כמה
+            כסף יש לכם.
+          </p>
         </div>
       </div>
     ),
@@ -447,8 +531,15 @@ const items: AccordionItem[] = [
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function GuidesStartPage() {
-  const [openItem, setOpenItem] = useState<string | null>('matters')
+function GuidesStartPageContent() {
+  const searchParams = useSearchParams()
+  const requestedTab = searchParams.get('tab')
+  const initialTab =
+    requestedTab && items.some((item) => item.value === requestedTab)
+      ? requestedTab
+      : 'matters'
+
+  const [openItem, setOpenItem] = useState<string | null>(initialTab)
 
   const toggle = (value: string) =>
     setOpenItem((prev) => (prev === value ? null : value))
@@ -461,7 +552,8 @@ export default function GuidesStartPage() {
           style={{
             backgroundColor: '#FAFAFA',
             borderBottom: '1px solid #E4E4E7',
-            padding: '52px 24px 48px',
+            padding:
+              'clamp(40px, 7vw, 64px) clamp(20px, 5vw, 32px) clamp(36px, 6vw, 56px)',
           }}
         >
           <div style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -518,23 +610,9 @@ export default function GuidesStartPage() {
               </span>
             </div>
 
-            <span
-              dir="ltr"
-              style={{
-                display: 'inline-block',
-                fontFamily: 'var(--font-mono), monospace',
-                fontSize: '0.65rem',
-                color: '#A1A1AA',
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                marginBottom: 14,
-              }}
-            >
-              USER_GUIDES
-            </span>
             <h1
               style={{
-                fontSize: 'clamp(1.7rem, 3.5vw, 2.4rem)',
+                fontSize: 'clamp(1.6rem, 4.6vw, 2.4rem)',
                 fontWeight: 700,
                 letterSpacing: '-0.03em',
                 color: '#09090B',
@@ -547,9 +625,9 @@ export default function GuidesStartPage() {
             <p
               style={{
                 color: '#71717A',
-                fontSize: '0.95rem',
-                maxWidth: 480,
-                lineHeight: 1.6,
+                fontSize: 'clamp(0.9rem, 2.4vw, 0.975rem)',
+                maxWidth: 520,
+                lineHeight: 1.7,
                 margin: 0,
               }}
             >
@@ -560,7 +638,12 @@ export default function GuidesStartPage() {
         </div>
 
         {/* Accordion section */}
-        <div style={{ padding: '60px 24px 80px' }}>
+        <div
+          style={{
+            padding:
+              'clamp(44px, 7vw, 72px) clamp(20px, 5vw, 32px) clamp(60px, 9vw, 96px)',
+          }}
+        >
           <div
             style={{
               maxWidth: 760,
@@ -584,7 +667,7 @@ export default function GuidesStartPage() {
           <div
             style={{
               maxWidth: 760,
-              margin: '56px auto 0',
+              margin: 'clamp(40px, 6vw, 64px) auto 0',
               position: 'relative',
               border: '1px solid #E4E4E7',
               borderRadius: 16,
@@ -617,20 +700,6 @@ export default function GuidesStartPage() {
                   maxWidth: 560,
                 }}
               >
-                <span
-                  dir="ltr"
-                  style={{
-                    display: 'inline-block',
-                    fontFamily: 'var(--font-mono), monospace',
-                    fontSize: '0.65rem',
-                    color: AMBER,
-                    letterSpacing: '0.14em',
-                    textTransform: 'uppercase',
-                    fontWeight: 600,
-                  }}
-                >
-                  NEXT_STEP
-                </span>
                 <h3
                   style={{
                     margin: 0,
@@ -669,11 +738,12 @@ export default function GuidesStartPage() {
                     color: '#FFFFFF',
                     fontSize: '0.9rem',
                     fontWeight: 600,
-                    padding: '13px 22px',
+                    padding: '14px 22px',
+                    minHeight: 48,
                     borderRadius: 10,
                     textDecoration: 'none',
                     border: `1px solid #09090B`,
-                    transition: 'transform 0.18s ease, background-color 0.18s',
+                    transition: 'background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease',
                   }}
                   onMouseEnter={(e) => {
                     const el = e.currentTarget as HTMLElement
@@ -700,5 +770,13 @@ export default function GuidesStartPage() {
       </main>
       <Footer />
     </>
+  )
+}
+
+export default function GuidesStartPage() {
+  return (
+    <Suspense fallback={null}>
+      <GuidesStartPageContent />
+    </Suspense>
   )
 }
