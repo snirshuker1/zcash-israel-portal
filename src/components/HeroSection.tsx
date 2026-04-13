@@ -10,7 +10,7 @@ import { PageReadyContext } from "./PageWrapper";
 const statsFetcher = (url: string) => fetch(url).then((r) => r.json());
 
 function formatSupply(zec: number): string {
-  return Math.round(zec).toLocaleString("en-US");
+  return `${(zec / 1_000_000).toFixed(2)}M`;
 }
 
 const AMBER = "#F3B132";
