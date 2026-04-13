@@ -31,7 +31,12 @@
       "Bash(curl -s http://localhost:3000/api/zcash/stats)",
       "Bash(curl -s http://localhost:3000/ -o /tmp/homepage.html)",
       "Bash(curl:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(git show:*)",
+      "Read(//tmp/**)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(npx next:*)",
+      "Bash(git commit -m ':*+)"
     ]
   }
 }

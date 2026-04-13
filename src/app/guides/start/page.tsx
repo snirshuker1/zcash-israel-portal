@@ -1,5 +1,5 @@
 'use client'
-import { Suspense, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   ChevronDown,
@@ -37,14 +37,17 @@ function AccordionItem({
   item,
   isOpen,
   onToggle,
+  registerRef,
 }: {
   item: AccordionItem
   isOpen: boolean
   onToggle: () => void
+  registerRef: (el: HTMLDivElement | null) => void
 }) {
   const Icon = item.icon
   return (
     <div
+      ref={registerRef}
       style={{
         border: `1px solid ${isOpen ? '#F3B13240' : '#E4E4E7'}`,
         borderRadius: 10,
@@ -544,6 +547,35 @@ function GuidesStartPageContent() {
   const toggle = (value: string) =>
     setOpenItem((prev) => (prev === value ? null : value))
 
+  const itemRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const isInitialMount = useRef(true)
+
+  // Wait for the 0.25s expand/collapse to settle before scrolling so we land on the final layout, not a mid-animation one.
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
+    if (!openItem) return
+
+    const timeoutId = window.setTimeout(() => {
+      const el = itemRefs.current[openItem]
+      if (!el) return
+      const prefersReduced =
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      const HEADER_OFFSET = 80
+      const targetY =
+        el.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET
+      window.scrollTo({
+        top: Math.max(targetY, 0),
+        behavior: prefersReduced ? 'auto' : 'smooth',
+      })
+    }, 300)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [openItem])
+
   return (
     <>
       <main style={{ paddingTop: 72, minHeight: '100vh', backgroundColor: '#FFFFFF' }}>
@@ -659,6 +691,9 @@ function GuidesStartPageContent() {
                 item={item}
                 isOpen={openItem === item.value}
                 onToggle={() => toggle(item.value)}
+                registerRef={(el) => {
+                  itemRefs.current[item.value] = el
+                }}
               />
             ))}
           </div>
