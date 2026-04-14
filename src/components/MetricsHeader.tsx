@@ -3,14 +3,12 @@
 import { useState } from "react";
 import LiveDataModal from "./LiveDataModal";
 
-const AMBER = "#F3B132";
-
 export default function MetricsHeader() {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <div style={{ marginBottom: 36, textAlign: "center" }} dir="rtl">
+      <div style={{ marginBottom: 40, textAlign: "center" }} dir="rtl">
         <button
           onClick={() => setOpen(true)}
           style={{
@@ -18,51 +16,51 @@ export default function MetricsHeader() {
             cursor: "pointer",
             display: "inline-flex",
             alignItems: "center",
-            gap: 8,
+            gap: 9,
             fontFamily: "var(--font-mono), monospace",
-            fontSize: "0.72rem",
-            letterSpacing: "0.16em",
-            color: AMBER,
-            marginBottom: 10,
+            fontSize: "0.68rem",
+            letterSpacing: "0.18em",
+            color: "#a1a1aa",
+            marginBottom: 14,
             padding: "6px 14px",
-            borderRadius: 6,
-            border: `1px solid ${AMBER}30`,
-            transition: "background 0.2s, border-color 0.2s",
+            borderRadius: 999,
+            border: "1px solid #27272a",
+            background: "#0f0f12",
+            transition: "all 0.2s",
+            fontWeight: 500,
           }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.background = `${AMBER}12`;
-            (e.currentTarget as HTMLElement).style.borderColor = `${AMBER}60`;
+            (e.currentTarget as HTMLElement).style.borderColor = "#3f3f46";
+            (e.currentTarget as HTMLElement).style.color = "#e4e4e7";
           }}
           onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.background = "transparent";
-            (e.currentTarget as HTMLElement).style.borderColor = `${AMBER}30`;
+            (e.currentTarget as HTMLElement).style.borderColor = "#27272a";
+            (e.currentTarget as HTMLElement).style.color = "#a1a1aa";
           }}
         >
-          <span
-            style={{
-              width: 5,
-              height: 5,
-              borderRadius: "50%",
-              background: AMBER,
-              display: "inline-block",
-              animation: "pulse-amber 2s ease-in-out infinite",
-            }}
-          />
-          // LIVE_PROTOCOL_DATA
+          <span className="live-dot" aria-hidden />
+          LIVE · PROTOCOL DATA
         </button>
         <h2
           style={{
             fontSize: "clamp(1.7rem, 4vw, 2.2rem)",
             fontWeight: 700,
-            color: "#e4e4e7",
-            letterSpacing: "-0.02em",
-            marginBottom: 6,
+            color: "#fafafa",
+            letterSpacing: "-0.025em",
+            marginBottom: 8,
             fontFamily: "Inter, system-ui, sans-serif",
           }}
         >
           מטריקות פרוטוקול בזמן אמת
         </h2>
-        <p style={{ fontSize: "0.92rem", color: "#52525b", fontFamily: "Inter, system-ui, sans-serif" }}>
+        <p
+          style={{
+            fontSize: "0.92rem",
+            color: "#71717a",
+            fontFamily: "Inter, system-ui, sans-serif",
+            letterSpacing: "-0.005em",
+          }}
+        >
           לחץ על כל כרטיס לפתיחת גרף אינטראקטיבי
         </p>
       </div>

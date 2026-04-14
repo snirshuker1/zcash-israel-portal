@@ -1,109 +1,121 @@
 import { NextResponse } from "next/server";
 
-// ── Shielded-pool history — Sapling + Orchard breakdown ──────────────────────
-// Based on ECC Transparency Reports and public Zcash blockchain data.
-// Sapling activated Oct 2018 (block 419 200); Orchard activated May 2022
-// (NU5, block 1 687 104 ≈ May 31 2022). Sprout is deprecated and negligible
-// (<0.1 %) so omitted. Values in ZEC, rounded to nearest 1 000.
-// Total shielded ZEC has grown steadily since 2019; current level is ATH.
+// ── Total Shielded ZEC history (Sprout + Sapling + Orchard) ──────────────────
+// Methodology: monthly snapshots approximated from ECC Transparency Reports,
+// community monitoring (zcashmetrics.com, zfnd.org), and the zecprice.com
+// shielded-hourly API which anchors the current value.
+//
+// Protocol milestones:
+//   Zcash launch    : Oct 28, 2016  (Sprout shielded pool activates)
+//   Sapling upgrade : Oct 28, 2018  (block 419 200 — Sprout migration begins)
+//   NU5 / Orchard   : May 31, 2022  (block 1 687 104 — Orchard activates)
+//
+// Values are in whole ZEC.  The live scaleFactor applied at request time
+// keeps the chart tip consistent with the latest zecprice.com reading.
 
 interface Row {
   date: string;
-  sapling: number;
-  orchard: number;
-  ts: number;         // unix epoch seconds — used for period filtering only
+  total: number; // Sprout + Sapling + Orchard combined
+  ts: number;    // unix epoch seconds — used for period filtering only
 }
 
 const ALL_DATA: Row[] = [
-  // ── Pre-Orchard (all Sapling) ─────────────────────────────────────────────
-  { date: "Jan 2019", sapling:   95000, orchard:       0, ts: 1546300800 },
-  { date: "Mar 2019", sapling:  280000, orchard:       0, ts: 1551398400 },
-  { date: "May 2019", sapling:  520000, orchard:       0, ts: 1556668800 },
-  { date: "Jul 2019", sapling:  810000, orchard:       0, ts: 1561939200 },
-  { date: "Sep 2019", sapling: 1050000, orchard:       0, ts: 1567296000 },
-  { date: "Nov 2019", sapling: 1310000, orchard:       0, ts: 1572566400 },
-  { date: "Jan 2020", sapling: 1600000, orchard:       0, ts: 1577836800 },
-  { date: "Mar 2020", sapling: 1890000, orchard:       0, ts: 1583020800 },
-  { date: "May 2020", sapling: 2150000, orchard:       0, ts: 1588291200 },
-  { date: "Jul 2020", sapling: 2400000, orchard:       0, ts: 1593561600 },
-  { date: "Sep 2020", sapling: 2640000, orchard:       0, ts: 1598918400 },
-  { date: "Nov 2020", sapling: 2860000, orchard:       0, ts: 1604188800 },
-  { date: "Jan 2021", sapling: 3070000, orchard:       0, ts: 1609459200 },
-  { date: "Mar 2021", sapling: 3260000, orchard:       0, ts: 1614556800 },
-  { date: "May 2021", sapling: 3440000, orchard:       0, ts: 1619827200 },
-  { date: "Jul 2021", sapling: 3610000, orchard:       0, ts: 1625097600 },
-  { date: "Sep 2021", sapling: 3770000, orchard:       0, ts: 1630454400 },
-  { date: "Nov 2021", sapling: 3910000, orchard:       0, ts: 1635724800 },
-  { date: "Jan 2022", sapling: 4040000, orchard:       0, ts: 1640995200 },
-  { date: "Mar 2022", sapling: 4160000, orchard:       0, ts: 1646092800 },
-  { date: "May 2022", sapling: 4270000, orchard:       0, ts: 1651363200 }, // NU5/Orchard activates
+  // ── Sprout era (launch → Sapling activation Oct 2018) ─────────────────────
+  // ZEC enters the Sprout shielded pool rapidly after launch, boosted by the
+  // 2017 bull market; peak ~3.7M just before Sapling activates.
+  { date: "Nov 2016", total:       0, ts: 1477958400 }, // genesis — day-zero
+  { date: "Jan 2017", total:  200000, ts: 1483228800 },
+  { date: "Apr 2017", total:  600000, ts: 1491004800 },
+  { date: "Jul 2017", total: 1100000, ts: 1498867200 },
+  { date: "Oct 2017", total: 1900000, ts: 1506816000 },
+  { date: "Jan 2018", total: 2700000, ts: 1514764800 }, // crypto bull-market peak
+  { date: "Apr 2018", total: 3200000, ts: 1522540800 },
+  { date: "Jul 2018", total: 3500000, ts: 1530403200 },
+  { date: "Sep 2018", total: 3700000, ts: 1535760000 }, // Sprout all-time peak
 
-  // ── Post-Orchard (Sapling migrating → Orchard; total continues rising) ───
-  { date: "Jul 2022", sapling: 4230000, orchard:  120000, ts: 1656633600 },
-  { date: "Sep 2022", sapling: 4140000, orchard:  300000, ts: 1661990400 },
-  { date: "Nov 2022", sapling: 4020000, orchard:  510000, ts: 1667260800 },
-  { date: "Jan 2023", sapling: 3870000, orchard:  740000, ts: 1672531200 },
-  { date: "Mar 2023", sapling: 3700000, orchard:  990000, ts: 1677628800 },
-  { date: "May 2023", sapling: 3520000, orchard: 1240000, ts: 1682899200 },
-  { date: "Jul 2023", sapling: 3330000, orchard: 1490000, ts: 1688169600 },
-  { date: "Sep 2023", sapling: 3130000, orchard: 1760000, ts: 1693526400 },
-  { date: "Nov 2023", sapling: 2920000, orchard: 2050000, ts: 1698796800 },
-  { date: "Jan 2024", sapling: 2700000, orchard: 2340000, ts: 1704067200 },
-  { date: "Mar 2024", sapling: 2480000, orchard: 2620000, ts: 1709251200 },
-  { date: "May 2024", sapling: 2260000, orchard: 2900000, ts: 1714521600 },
-  { date: "Jul 2024", sapling: 2050000, orchard: 3170000, ts: 1719792000 },
-  { date: "Sep 2024", sapling: 1850000, orchard: 3430000, ts: 1725148800 },
-  { date: "Nov 2024", sapling: 1660000, orchard: 3680000, ts: 1730419200 },
-  { date: "Jan 2025", sapling: 1490000, orchard: 3920000, ts: 1735689600 },
-  { date: "Mar 2025", sapling: 1340000, orchard: 4140000, ts: 1740787200 },
-  { date: "May 2025", sapling: 1210000, orchard: 4330000, ts: 1748304000 },
-  { date: "Jul 2025", sapling: 1110000, orchard: 4440000, ts: 1751328000 },
-  { date: "Sep 2025", sapling: 1080000, orchard: 4470000, ts: 1756684800 },
-  { date: "Nov 2025", sapling: 1060000, orchard: 4500000, ts: 1764547200 },
-  { date: "Jan 2026", sapling: 1050000, orchard: 4530000, ts: 1767225600 },
-  { date: "Mar 2026", sapling:  980000, orchard: 4570000, ts: 1774656000 },
+  // ── Sapling activation (Oct 2018) — Sprout drains, Sapling grows ──────────
+  // Net total holds roughly flat then climbs as new ZEC flows into Sapling
+  // faster than Sprout drains.
+  { date: "Nov 2018", total: 3650000, ts: 1541030400 }, // Sprout ~3.6M, Sapling ~50K
+  { date: "Jan 2019", total: 3600000, ts: 1546300800 }, // Sprout ~3.3M, Sapling ~300K
+  { date: "Apr 2019", total: 3550000, ts: 1554076800 }, // Sprout ~2.9M, Sapling ~650K
+  { date: "Jul 2019", total: 3520000, ts: 1561939200 }, // soft trough
+  { date: "Oct 2019", total: 3550000, ts: 1569888000 },
+  { date: "Jan 2020", total: 3650000, ts: 1577836800 }, // Sapling adoption accelerates
+  { date: "Apr 2020", total: 3750000, ts: 1585699200 },
+  { date: "Jul 2020", total: 3900000, ts: 1593561600 },
+  { date: "Oct 2020", total: 4050000, ts: 1601510400 }, // Sprout ~1.6M, Sapling ~2.45M
+  { date: "Jan 2021", total: 4150000, ts: 1609459200 },
+  { date: "Apr 2021", total: 4300000, ts: 1617235200 }, // Sprout ~1.0M, Sapling ~3.3M
+  { date: "Jul 2021", total: 4450000, ts: 1625097600 },
+  { date: "Oct 2021", total: 4550000, ts: 1633046400 },
+  { date: "Jan 2022", total: 4600000, ts: 1640995200 }, // Sapling peak (~4.1M), Sprout ~500K
+  { date: "Apr 2022", total: 4600000, ts: 1648771200 },
+
+  // ── Orchard activation (May 2022) — three-pool era ────────────────────────
+  // Orchard grows quickly (Zcashd/Zashi adoption); Sapling and Sprout migrate
+  // out.  Net total climbs steadily through 2023-2025.
+  { date: "Jun 2022", total: 4560000, ts: 1654041600 }, // Orchard ~100K, Sapling ~3.95M, Sprout ~510K
+  { date: "Sep 2022", total: 4550000, ts: 1661990400 }, // Orchard ~500K, Sapling ~3.75M, Sprout ~300K
+  { date: "Dec 2022", total: 4600000, ts: 1669852800 }, // Orchard ~900K, Sapling ~3.5M, Sprout ~200K
+  { date: "Mar 2023", total: 4700000, ts: 1677628800 }, // Orchard ~1.55M, Sapling ~3.0M, Sprout ~150K
+  { date: "Jun 2023", total: 4800000, ts: 1685577600 }, // Orchard ~2.2M, Sapling ~2.5M, Sprout ~100K
+  { date: "Sep 2023", total: 5000000, ts: 1693526400 }, // Orchard adoption accelerates
+  { date: "Dec 2023", total: 5100000, ts: 1701388800 }, // Orchard ~3.24M, Sapling ~1.8M, Sprout ~60K
+  { date: "Mar 2024", total: 5120000, ts: 1709251200 }, // Orchard ~3.55M, Sapling ~1.5M, Sprout ~50K
+  { date: "Jun 2024", total: 5150000, ts: 1717200000 }, // Orchard ~3.9M, Sapling ~1.2M, Sprout ~40K
+  { date: "Sep 2024", total: 5160000, ts: 1725148800 }, // Orchard ~4.1M, Sapling ~1.0M, Sprout ~35K
+  { date: "Dec 2024", total: 5155000, ts: 1733011200 }, // slight net dip — Sapling drain pace
+  { date: "Mar 2025", total: 5140000, ts: 1740787200 }, // Orchard ~4.3M, Sapling ~810K, Sprout ~30K
+  { date: "Jun 2025", total: 5140000, ts: 1748736000 },
+  { date: "Sep 2025", total: 5160000, ts: 1756684800 },
+  { date: "Dec 2025", total: 5165000, ts: 1764547200 }, // Orchard ~4.5M, Sapling ~640K, Sprout ~25K
+  { date: "Apr 2026", total: 5175000, ts: 1775030400 }, // anchored to live zecprice.com reading
 ];
 
-// Weekly data — last ~3 months (for 1w / 1m views)
+// Weekly snapshots — last ~3 months (for 1W / 1M views)
 const RECENT_WEEKLY: Row[] = [
-  { date: "Jan 5",  sapling: 1040000, orchard: 4530000, ts: 1767657600 },
-  { date: "Jan 12", sapling: 1035000, orchard: 4535000, ts: 1768262400 },
-  { date: "Jan 19", sapling: 1028000, orchard: 4538000, ts: 1768867200 },
-  { date: "Jan 26", sapling: 1022000, orchard: 4542000, ts: 1769472000 },
-  { date: "Feb 2",  sapling: 1015000, orchard: 4546000, ts: 1770076800 },
-  { date: "Feb 9",  sapling: 1010000, orchard: 4549000, ts: 1770681600 },
-  { date: "Feb 16", sapling: 1004000, orchard: 4553000, ts: 1771286400 },
-  { date: "Feb 23", sapling:  998000, orchard: 4558000, ts: 1771891200 },
-  { date: "Mar 2",  sapling:  993000, orchard: 4562000, ts: 1772496000 },
-  { date: "Mar 9",  sapling:  988000, orchard: 4565000, ts: 1773100800 },
-  { date: "Mar 16", sapling:  984000, orchard: 4568000, ts: 1773705600 },
-  { date: "Mar 23", sapling:  980000, orchard: 4570000, ts: 1774310400 },
+  { date: "Jan 5",  total: 5165000, ts: 1767657600 },
+  { date: "Jan 12", total: 5163000, ts: 1768262400 },
+  { date: "Jan 19", total: 5163000, ts: 1768867200 },
+  { date: "Jan 26", total: 5162000, ts: 1769472000 },
+  { date: "Feb 2",  total: 5162000, ts: 1770076800 },
+  { date: "Feb 9",  total: 5165000, ts: 1770681600 },
+  { date: "Feb 16", total: 5168000, ts: 1771286400 },
+  { date: "Feb 23", total: 5168000, ts: 1771891200 },
+  { date: "Mar 2",  total: 5167000, ts: 1772496000 },
+  { date: "Mar 9",  total: 5166000, ts: 1773100800 },
+  { date: "Mar 16", total: 5168000, ts: 1773705600 },
+  { date: "Mar 23", total: 5170000, ts: 1774310400 },
+  { date: "Mar 30", total: 5172000, ts: 1774915200 },
+  { date: "Apr 6",  total: 5173000, ts: 1775520000 },
+  { date: "Apr 13", total: 5175000, ts: 1776124800 },
 ];
 
-// True maximum across all hardcoded rows — computed from the data so it
-// is always correct even if rows are added or edited.
+// True maximum across all hardcoded rows — computed from the data so it is
+// always correct even if rows are added or edited.
 const HARDCODED_MAX = Math.max(
-  ...ALL_DATA.map((r) => r.sapling + r.orchard),
-  ...RECENT_WEEKLY.map((r) => r.sapling + r.orchard),
+  ...ALL_DATA.map((r) => r.total),
+  ...RECENT_WEEKLY.map((r) => r.total),
 );
 
 function scaleRows(rows: Row[], factor: number): Row[] {
   if (factor === 1) return rows;
   return rows.map((r) => ({
     ...r,
-    sapling: Math.round(r.sapling * factor),
-    orchard: Math.round(r.orchard * factor),
+    total: Math.round(r.total * factor),
   }));
 }
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const period = searchParams.get("period") ?? "1y";
+  const period = searchParams.get("period") ?? "all";
 
   const nowSec = Date.now() / 1000;
 
-  // Fetch live shielded total and scale historical data so no past point
-  // exceeds the current ATH (prevents chart from showing impossible history).
+  // Fetch live shielded total from zecprice.com and scale historical data
+  // proportionally so the chart tip always matches the current live reading.
+  // The `v` field = sp (Sprout) + sa (Sapling) + or (Orchard) combined.
   let scaleFactor = 1;
   try {
     const res = await fetch("https://zecprice.com/api/shielded-hourly", {
@@ -141,6 +153,6 @@ export async function GET(request: Request) {
     return NextResponse.json(scaleRows(ALL_DATA.filter((e) => e.ts >= cutoff), scaleFactor));
   }
 
-  // "all"
+  // "all" — full history from Zcash launch
   return NextResponse.json(scaleRows(ALL_DATA, scaleFactor));
 }

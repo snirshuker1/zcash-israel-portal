@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 const AMBER = "#F3B132";
 
@@ -195,7 +196,42 @@ export default function Footer() {
         </div>
 
         {/* Divider */}
-        <div style={{ height: 1, backgroundColor: "#27272a", marginBottom: 24 }} />
+        <div style={{ height: 1, backgroundColor: "#27272a", marginBottom: 20 }} />
+
+        {/* Legal disclaimer */}
+        <div style={{ marginBottom: 20 }} dir="rtl">
+          <p
+            style={{
+              fontSize: "0.72rem",
+              color: "#3f3f46",
+              fontFamily: "Inter, system-ui, sans-serif",
+              lineHeight: 1.75,
+              maxWidth: 820,
+              margin: 0,
+            }}
+          >
+            האתר מיועד למטרות חינוכיות בלבד ואינו מהווה ייעוץ השקעות, ייעוץ מס, או המלצה
+            לרכישה או מכירה של נכסים פיננסיים. המידע מסופק &quot;כמות שהוא&quot; (
+            <Ltr>AS-IS</Ltr>) ללא כל אחריות לדיוק או שלמות. חברי הקהילה עשויים להחזיק{" "}
+            <Ltr>ZEC</Ltr>. כל שימוש במידע הוא על אחריות המשתמש בלבד.{" "}
+            <Link
+              href="/terms"
+              style={{
+                color: "#52525b",
+                textDecoration: "underline",
+                textUnderlineOffset: "3px",
+                fontFamily: "Inter, system-ui, sans-serif",
+              }}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = AMBER)}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "#52525b")}
+            >
+              תנאי שימוש מלאים
+            </Link>
+          </p>
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: 1, backgroundColor: "#27272a", marginBottom: 20 }} />
 
         {/* Bottom row */}
         <div
@@ -209,7 +245,7 @@ export default function Footer() {
           dir="ltr"
         >
           <p style={{ fontSize: "0.72rem", color: "#3f3f46", fontFamily: "var(--font-mono), monospace" }}>
-            © 2025 Zcash IL · Not financial advice · Protocol data only
+            © 2026 Zcash IL · Educational portal · Not financial advice
           </p>
           <p style={{ fontSize: "0.72rem", color: "#3f3f46", fontFamily: "var(--font-mono), monospace" }}>
             ZEC · zk-SNARKs · Halo 2 · No Trusted Setup

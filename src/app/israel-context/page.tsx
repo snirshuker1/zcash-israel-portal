@@ -1,12 +1,23 @@
 'use client'
-import { ArrowRight, AlertTriangle, ExternalLink, MapPin, Scale, Newspaper } from 'lucide-react'
+import type { ReactNode } from 'react'
+import {
+  ArrowRight,
+  AlertTriangle,
+  Info,
+  ExternalLink,
+  MapPin,
+  Scale,
+  Newspaper,
+  Shield,
+  Sparkles,
+} from 'lucide-react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Footer from '@/components/Footer'
 
 const AMBER = '#F3B132'
 
-function Ltr({ children }: { children: React.ReactNode }) {
+function Ltr({ children }: { children: ReactNode }) {
   return (
     <span dir="ltr" className="inline-block">
       {children}
@@ -14,33 +25,45 @@ function Ltr({ children }: { children: React.ReactNode }) {
   )
 }
 
-// ─── Alert (styled like Shadcn) ───────────────────────────────────────────────
+// ─── Alert ────────────────────────────────────────────────────────────────────
 
 function Alert({
   title,
+  tone = 'info',
   children,
 }: {
   title: string
-  children: React.ReactNode
+  tone?: 'info' | 'warn'
+  children: ReactNode
 }) {
+  const palette =
+    tone === 'warn'
+      ? {
+          border: '1px solid rgba(243,177,50,0.35)',
+          background:
+            'linear-gradient(180deg, rgba(254,243,199,0.55) 0%, rgba(255,251,235,0.9) 100%)',
+          icon: <AlertTriangle size={16} color={AMBER} />,
+        }
+      : {
+          border: '1px solid #E4E4E7',
+          background: '#FAFAFA',
+          icon: <Info size={16} color="#71717A" />,
+        }
+
   return (
     <div
       role="alert"
       style={{
-        border: '1px solid #F3B13240',
-        backgroundColor: '#FFFBEB',
-        borderRadius: 8,
+        border: palette.border,
+        background: palette.background,
+        borderRadius: 10,
         padding: '14px 16px',
         display: 'flex',
         gap: 12,
         alignItems: 'flex-start',
       }}
     >
-      <AlertTriangle
-        size={16}
-        color={AMBER}
-        style={{ flexShrink: 0, marginTop: 2 }}
-      />
+      <span style={{ flexShrink: 0, marginTop: 2 }}>{palette.icon}</span>
       <div>
         <p
           style={{
@@ -52,7 +75,7 @@ function Alert({
         >
           {title}
         </p>
-        <div style={{ fontSize: '0.82rem', color: '#71717A', lineHeight: 1.65 }}>
+        <div style={{ fontSize: '0.82rem', color: '#52525B', lineHeight: 1.7 }}>
           {children}
         </div>
       </div>
@@ -60,15 +83,45 @@ function Alert({
   )
 }
 
-// ─── Exchange card ────────────────────────────────────────────────────────────
+// ─── Exchange card (dark) ─────────────────────────────────────────────────────
 
 interface Exchange {
   name: string
   type: string
-  zecSupport: string
+  badges: ReactNode[]
   note: string
   href: string
-  local: boolean
+  highlight?: boolean
+}
+
+function Badge({
+  children,
+  accent = false,
+}: {
+  children: ReactNode
+  accent?: boolean
+}) {
+  return (
+    <span
+      style={{
+        fontSize: '0.58rem',
+        fontFamily: 'var(--font-mono), monospace',
+        letterSpacing: '0.08em',
+        textTransform: 'uppercase',
+        padding: '3px 8px',
+        borderRadius: 999,
+        border: accent
+          ? '1px solid rgba(243,177,50,0.5)'
+          : '1px solid #3F3F46',
+        color: accent ? AMBER : '#D4D4D8',
+        backgroundColor: accent ? 'rgba(243,177,50,0.08)' : 'rgba(39,39,42,0.6)',
+        fontWeight: 600,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {children}
+    </span>
+  )
 }
 
 function ExchangeCard({ exchange }: { exchange: Exchange }) {
@@ -77,166 +130,303 @@ function ExchangeCard({ exchange }: { exchange: Exchange }) {
       href={exchange.href}
       target="_blank"
       rel="noopener noreferrer"
-      style={{ textDecoration: 'none' }}
+      style={{ textDecoration: 'none', display: 'block' }}
     >
       <div
         style={{
-          border: '1px solid #E4E4E7',
-          borderRadius: 10,
-          padding: '16px 18px',
-          backgroundColor: '#FFFFFF',
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          gap: 16,
-          transition: 'border-color 0.2s',
+          position: 'relative',
+          border: exchange.highlight
+            ? '1px solid rgba(243,177,50,0.45)'
+            : '1px solid #27272A',
+          borderRadius: 14,
+          padding: '18px 20px',
+          backgroundColor: 'rgba(24,24,27,0.55)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+          transition:
+            'border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease',
+          boxShadow: exchange.highlight
+            ? '0 0 0 1px rgba(243,177,50,0.08), 0 10px 40px -20px rgba(243,177,50,0.35)'
+            : '0 1px 0 rgba(255,255,255,0.02) inset',
           cursor: 'pointer',
+          overflow: 'hidden',
         }}
-        onMouseEnter={(e) =>
-          ((e.currentTarget as HTMLElement).style.borderColor = AMBER)
-        }
-        onMouseLeave={(e) =>
-          ((e.currentTarget as HTMLElement).style.borderColor = '#E4E4E7')
-        }
+        onMouseEnter={(e) => {
+          const el = e.currentTarget as HTMLElement
+          el.style.borderColor = AMBER
+          el.style.transform = 'translateY(-2px)'
+          el.style.boxShadow =
+            '0 0 0 1px rgba(243,177,50,0.12), 0 18px 50px -22px rgba(243,177,50,0.45)'
+        }}
+        onMouseLeave={(e) => {
+          const el = e.currentTarget as HTMLElement
+          el.style.borderColor = exchange.highlight
+            ? 'rgba(243,177,50,0.45)'
+            : '#27272A'
+          el.style.transform = 'translateY(0)'
+          el.style.boxShadow = exchange.highlight
+            ? '0 0 0 1px rgba(243,177,50,0.08), 0 10px 40px -20px rgba(243,177,50,0.35)'
+            : '0 1px 0 rgba(255,255,255,0.02) inset'
+        }}
       >
-        <div style={{ flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <span
+        {exchange.highlight && (
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background:
+                'radial-gradient(120% 60% at 100% 0%, rgba(243,177,50,0.08) 0%, transparent 55%)',
+              pointerEvents: 'none',
+            }}
+          />
+        )}
+        <div
+          style={{
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            gap: 16,
+          }}
+        >
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div
               style={{
-                fontSize: '0.9rem',
-                fontWeight: 600,
-                color: '#09090B',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                marginBottom: 6,
+                flexWrap: 'wrap',
               }}
-              dir="ltr"
             >
-              {exchange.name}
-            </span>
-            {exchange.local && (
               <span
+                dir="ltr"
                 style={{
-                  fontSize: '0.6rem',
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  color: '#FAFAFA',
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {exchange.name}
+              </span>
+              <span
+                dir="ltr"
+                style={{
                   fontFamily: 'var(--font-mono), monospace',
-                  color: '#FFFFFF',
-                  backgroundColor: '#09090B',
-                  padding: '2px 6px',
-                  borderRadius: 4,
+                  fontSize: '0.6rem',
+                  color: '#71717A',
                   letterSpacing: '0.06em',
                 }}
               >
-                IL
+                {exchange.type}
               </span>
-            )}
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 6,
+                marginBottom: 10,
+              }}
+            >
+              {exchange.badges.map((b, i) => (
+                <Badge key={i} accent={exchange.highlight && i === 0}>
+                  {b}
+                </Badge>
+              ))}
+            </div>
+
+            <p
+              style={{
+                fontSize: '0.82rem',
+                color: '#A1A1AA',
+                margin: 0,
+                lineHeight: 1.65,
+              }}
+            >
+              {exchange.note}
+            </p>
           </div>
-          <span
-            dir="ltr"
+
+          <div
             style={{
-              display: 'inline-block',
-              fontFamily: 'var(--font-mono), monospace',
-              fontSize: '0.62rem',
-              color: '#A1A1AA',
-              marginBottom: 6,
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 34,
+              height: 34,
+              borderRadius: 8,
+              border: '1px solid #27272A',
+              backgroundColor: 'rgba(9,9,11,0.6)',
             }}
           >
-            {exchange.type}
-          </span>
-          <p style={{ fontSize: '0.8rem', color: '#71717A', margin: 0 }}>{exchange.note}</p>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
-          <span
-            dir="ltr"
-            style={{
-              fontFamily: 'var(--font-mono), monospace',
-              fontSize: '0.62rem',
-              color: exchange.zecSupport === 'ZEC ✓' ? '#22C55E' : '#A1A1AA',
-              fontWeight: 600,
-            }}
-          >
-            {exchange.zecSupport}
-          </span>
-          <ExternalLink size={12} color="#A1A1AA" />
+            <ExternalLink size={14} color="#A1A1AA" />
+          </div>
         </div>
       </div>
     </a>
   )
 }
 
-// ─── Update card ──────────────────────────────────────────────────────────────
+// ─── Timeline entry ───────────────────────────────────────────────────────────
 
 interface Update {
   date: string
-  source: string
+  source: 'ZF' | 'ECC' | 'ZCAP'
   title: string
   summary: string
   href: string
 }
 
-function UpdateCard({ update }: { update: Update }) {
+function TimelineItem({
+  update,
+  index,
+  isLast,
+}: {
+  update: Update
+  index: number
+  isLast: boolean
+}) {
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.45, delay: index * 0.08 }}
       style={{
-        borderBottom: '1px solid #F4F4F5',
-        paddingBottom: 20,
-        paddingTop: 4,
         display: 'flex',
-        flexDirection: 'column',
-        gap: 6,
+        gap: 18,
+        paddingBottom: isLast ? 0 : 34,
+        position: 'relative',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span
-          dir="ltr"
-          style={{
-            fontFamily: 'var(--font-mono), monospace',
-            fontSize: '0.62rem',
-            color: '#A1A1AA',
-          }}
-        >
-          {update.date}
-        </span>
-        <span
-          dir="ltr"
-          style={{
-            fontSize: '0.6rem',
-            fontFamily: 'var(--font-mono), monospace',
-            color: AMBER,
-            backgroundColor: '#FEF3C7',
-            padding: '1px 6px',
-            borderRadius: 3,
-            letterSpacing: '0.06em',
-            fontWeight: 600,
-          }}
-        >
-          {update.source}
-        </span>
-      </div>
-      <a
-        href={update.href}
-        target="_blank"
-        rel="noopener noreferrer"
+      {/* Rail column */}
+      <div
         style={{
-          fontSize: '0.9rem',
-          fontWeight: 600,
-          color: '#09090B',
-          textDecoration: 'none',
-          lineHeight: 1.4,
-          display: 'inline-flex',
-          alignItems: 'flex-start',
-          gap: 6,
+          position: 'relative',
+          width: 14,
+          flexShrink: 0,
         }}
-        onMouseEnter={(e) =>
-          ((e.currentTarget as HTMLElement).style.color = AMBER)
-        }
-        onMouseLeave={(e) =>
-          ((e.currentTarget as HTMLElement).style.color = '#09090B')
-        }
       >
-        {update.title}
-        <ExternalLink size={12} style={{ flexShrink: 0, marginTop: 3 }} />
-      </a>
-      <p style={{ fontSize: '0.82rem', color: '#71717A', margin: 0, lineHeight: 1.6 }}>
-        {update.summary}
-      </p>
-    </div>
+        {/* Line segment extending into the next item's gap */}
+        {!isLast && (
+          <div
+            style={{
+              position: 'absolute',
+              right: 6,
+              top: 16,
+              bottom: -18,
+              width: 1.5,
+              background:
+                'linear-gradient(180deg, #27272A 0%, rgba(39,39,42,0.35) 100%)',
+            }}
+          />
+        )}
+        {/* Marker */}
+        <div
+          style={{
+            position: 'absolute',
+            right: 0,
+            top: 6,
+            width: 14,
+            height: 14,
+            borderRadius: '50%',
+            backgroundColor: '#09090B',
+            border: `1.5px solid ${AMBER}`,
+            boxShadow:
+              '0 0 0 3px rgba(243,177,50,0.1), 0 0 18px -4px rgba(243,177,50,0.45)',
+          }}
+        />
+      </div>
+
+      {/* Content */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            marginBottom: 8,
+            flexWrap: 'wrap',
+          }}
+        >
+          <span
+            dir="ltr"
+            style={{
+              fontFamily: 'var(--font-mono), monospace',
+              fontSize: '0.65rem',
+              color: '#FAFAFA',
+              letterSpacing: '0.08em',
+              padding: '2px 8px',
+              borderRadius: 4,
+              backgroundColor: '#18181B',
+              border: '1px solid #27272A',
+              fontWeight: 600,
+            }}
+          >
+            {update.date}
+          </span>
+          <span
+            dir="ltr"
+            style={{
+              fontFamily: 'var(--font-mono), monospace',
+              fontSize: '0.58rem',
+              color: AMBER,
+              backgroundColor: 'rgba(243,177,50,0.1)',
+              border: '1px solid rgba(243,177,50,0.3)',
+              padding: '2px 7px',
+              borderRadius: 4,
+              letterSpacing: '0.1em',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+            }}
+          >
+            SOURCE · {update.source}
+          </span>
+        </div>
+
+        <a
+          href={update.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            fontSize: '0.98rem',
+            fontWeight: 700,
+            color: '#FAFAFA',
+            textDecoration: 'none',
+            lineHeight: 1.4,
+            display: 'inline-flex',
+            alignItems: 'flex-start',
+            gap: 6,
+            letterSpacing: '-0.01em',
+            marginBottom: 6,
+          }}
+          onMouseEnter={(e) =>
+            ((e.currentTarget as HTMLElement).style.color = AMBER)
+          }
+          onMouseLeave={(e) =>
+            ((e.currentTarget as HTMLElement).style.color = '#FAFAFA')
+          }
+        >
+          {update.title}
+          <ExternalLink size={12} style={{ flexShrink: 0, marginTop: 4 }} />
+        </a>
+        <p
+          style={{
+            fontSize: '0.84rem',
+            color: '#A1A1AA',
+            margin: 0,
+            lineHeight: 1.7,
+          }}
+        >
+          {update.summary}
+        </p>
+      </div>
+    </motion.div>
   )
 }
 
@@ -244,44 +434,51 @@ function UpdateCard({ update }: { update: Update }) {
 
 const exchanges: Exchange[] = [
   {
-    name: 'Bit2C',
-    type: 'Israeli Exchange · ILS / ZEC',
-    zecSupport: 'ZEC ✓',
-    note: 'הבורסה הישראלית הוותיקה ביותר. תומכת ב-ZEC עם זוג מסחר שקל-זיקאש.',
-    href: 'https://www.bit2c.co.il',
-    local: true,
+    name: 'Near Intents',
+    type: 'Decentralized Swap',
+    badges: [
+      'מומלץ לפרטיות',
+      <>
+        מבוזר (<Ltr>DEX</Ltr>)
+      </>,
+      <>
+        ללא <Ltr>KYC</Ltr>
+      </>,
+    ],
+    note: 'החלפה מבוזרת ישירות מארנק לארנק — ללא חשבון, ללא KYC. הדרך המהירה והפרטית ביותר להמיר מטבע בסיסי ל-ZEC מוגן.',
+    href: 'https://near-intents.org/?from=USDT&to=ZEC',
+    highlight: true,
   },
   {
     name: 'Kraken',
-    type: 'International Exchange',
-    zecSupport: 'ZEC ✓',
-    note: 'אחת הבורסות הגדולות בעולם, נגישה מישראל עם תמיכה ב-ZEC מלאה.',
+    type: 'International CEX',
+    badges: [
+      'בינלאומי',
+      <>
+        מוסדר (<Ltr>Regulated</Ltr>)
+      </>,
+    ],
+    note: 'בורסה מרכזית ותיקה ומבוססת בארה"ב. נגישה לתושבי ישראל, עם זוגות מסחר ישירים של USD/ZEC ו-BTC/ZEC.',
     href: 'https://www.kraken.com',
-    local: false,
-  },
-  {
-    name: 'Binance',
-    type: 'International Exchange',
-    zecSupport: 'ZEC ✓',
-    note: 'הבורסה הגדולה בעולם. יש לשים לב לדרישות KYC ומגבלות אזוריות.',
-    href: 'https://www.binance.com',
-    local: false,
-  },
-  {
-    name: 'Near Intents',
-    type: 'Decentralized / DEX',
-    zecSupport: 'ZEC ✓',
-    note: 'החלפה מבוזרת — אין KYC, ישירות מארנק לארנק. מומלץ למי שמעריך פרטיות.',
-    href: 'https://near-intents.org/?from=USDT&to=ZEC',
-    local: false,
   },
   {
     name: 'Gemini',
-    type: 'International Exchange',
-    zecSupport: 'ZEC ✓',
-    note: 'בורסה מוסדרת בארה"ב, תומכת ב-ZEC. נגישה לתושבי ישראל.',
+    type: 'International CEX',
+    badges: [
+      'בינלאומי',
+      <>
+        מוסדר (<Ltr>Regulated</Ltr>)
+      </>,
+    ],
+    note: 'בורסה מוסדרת תחת רגולציית NYDFS עם סטנדרטים גבוהים של ציות. ניתן להמיר ישירות USD/ZEC ולמשוך לארנק.',
     href: 'https://www.gemini.com',
-    local: false,
+  },
+  {
+    name: 'Binance',
+    type: 'International CEX',
+    badges: ['בינלאומי'],
+    note: 'הבורסה הגדולה בעולם לפי נפח מסחר. יש לבדוק זמינות אזורית ודרישות KYC לפני פתיחת חשבון מישראל.',
+    href: 'https://www.binance.com',
   },
 ]
 
@@ -291,7 +488,7 @@ const updates: Update[] = [
     source: 'ZF',
     title: 'Zcash Shielded Assets (ZSA) — עדכון מצב',
     summary:
-      'מיסוד Zcash פרסם עדכון על התקדמות ZSA — נכסים מוגנים מותאמים-אישית על רשת Zcash. המשמעות: טוקנים שמורשים עם אותה פרטיות כמו ZEC.',
+      'מיסוד Zcash פרסם עדכון על התקדמות ZSA — נכסים מוגנים מותאמים-אישית על רשת Zcash. המשמעות: טוקנים מורשים שנושאים את אותה פרטיות ברמת-פרוטוקול כמו ZEC עצמו.',
     href: 'https://zfnd.org',
   },
   {
@@ -299,16 +496,50 @@ const updates: Update[] = [
     source: 'ZF',
     title: 'Zcash Foundation — דוח שנתי 2024',
     summary:
-      'מיסוד Zcash פרסם דוח שנתי הכולל מימון מחקר, קידום קהילות ותמיכה בפיתוח פרוטוקול Halo 2.',
+      'מיסוד Zcash פרסם דוח שנתי הכולל מימון מחקר, תמיכה בפיתוח Halo 2, וקידום קהילות אזוריות ברחבי העולם.',
     href: 'https://zfnd.org',
   },
   {
     date: '2024-11',
-    source: 'ZF',
-    title: 'Zodl 1.3 — שיפורי ביצועים ו-Unified Addresses',
+    source: 'ECC',
+    title: 'Zashi 1.3 — שיפורי ביצועים ו-Unified Addresses',
     summary:
-      'גרסה חדשה של ארנק Zodl כוללת סנכרון מהיר יותר, תמיכה מלאה ב-Orchard, ושיפורים ב-UX לשליחת ZEC מוגן.',
+      'גרסה חדשה של ארנק Zashi כוללת סנכרון מהיר יותר, תמיכה מלאה ב-Orchard, ושיפורים משמעותיים ב-UX לשליחת ZEC מוגן בתוך הבריכה.',
     href: 'https://zfnd.org',
+  },
+]
+
+// ─── Tax cards ────────────────────────────────────────────────────────────────
+
+interface TaxCard {
+  title: string
+  content: string
+  icon?: ReactNode
+  highlight?: boolean
+}
+
+const taxCards: TaxCard[] = [
+  {
+    title: 'קריפטו כנכס',
+    content:
+      'רשות המיסים רואה במטבעות קריפטוגרפיים "נכס" לצרכי מס ולא "מטבע". רווחים ממכירה חייבים במס רווח הון (25% ליחיד).',
+  },
+  {
+    title: 'דיווח חובה',
+    content:
+      'קיימת חובת דיווח על הכנסות מקריפטו בדוח השנתי לרשות המיסים. אי-דיווח עלול להוות עבירה פלילית.',
+  },
+  {
+    title: 'Viewing Keys — יתרון ייחודי של Zcash',
+    content:
+      'Zcash מאפשר לייצר Viewing Key — מפתח לצפייה-בלבד שחושף את היסטוריית העסקאות לרואה חשבון או לרשות מס, מבלי למסור שליטה על הכספים. פרטיות כברירת-מחדל + ציות לפי דרישה. שום מטבע אחר לא מציע זאת ברמת הפרוטוקול.',
+    icon: <Shield size={15} color={AMBER} />,
+    highlight: true,
+  },
+  {
+    title: 'AML / KYC',
+    content:
+      'בורסות ישראליות מחויבות בחוק איסור הלבנת הון. ציות לדרישות KYC של הבורסה הוא חובה חוקית.',
   },
 ]
 
@@ -415,7 +646,8 @@ export default function IsraelContextPage() {
                 margin: 0,
               }}
             >
-              היכן לרכוש <Ltr>ZEC</Ltr>, מה אומר חוק המיסוי הישראלי, ועדכונים מתורגמים ממיסוד <Ltr>Zcash</Ltr>.
+              היכן לרכוש <Ltr>ZEC</Ltr>, מה אומר חוק המיסוי הישראלי, ועדכונים
+              מתורגמים ממיסוד <Ltr>Zcash</Ltr>.
             </p>
           </div>
         </div>
@@ -428,7 +660,7 @@ export default function IsraelContextPage() {
               margin: '0 auto',
               display: 'flex',
               flexDirection: 'column',
-              gap: 56,
+              gap: 64,
             }}
           >
             {/* ── Section 1: Where to buy ── */}
@@ -439,12 +671,17 @@ export default function IsraelContextPage() {
               transition={{ duration: 0.4 }}
             >
               <div
-                style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  marginBottom: 6,
+                }}
               >
                 <MapPin size={18} color={AMBER} />
                 <h2
                   style={{
-                    fontSize: '1.2rem',
+                    fontSize: '1.25rem',
                     fontWeight: 700,
                     color: '#09090B',
                     letterSpacing: '-0.02em',
@@ -453,14 +690,76 @@ export default function IsraelContextPage() {
                   היכן לרכוש <Ltr>ZEC</Ltr>
                 </h2>
               </div>
-              <p style={{ color: '#71717A', fontSize: '0.85rem', marginBottom: 20, lineHeight: 1.6 }}>
-                הרשימה כוללת בורסות נגישות לתושבי ישראל עם תמיכה ב-<Ltr>ZEC</Ltr>.
-                לרכישה ישירה ללא <Ltr>KYC</Ltr> — מומלץ <Ltr>Near Intents</Ltr>.
+              <p
+                style={{
+                  color: '#71717A',
+                  fontSize: '0.88rem',
+                  marginBottom: 20,
+                  lineHeight: 1.7,
+                }}
+              >
+                הרשימה כוללת פלטפורמות נגישות לתושבי ישראל עם תמיכה מלאה ב-
+                <Ltr>ZEC</Ltr>. לרכישה ישירה ללא <Ltr>KYC</Ltr> — מומלץ{' '}
+                <Ltr>Near Intents</Ltr>.
               </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {exchanges.map((ex) => (
-                  <ExchangeCard key={ex.name} exchange={ex} />
-                ))}
+
+              <div style={{ marginBottom: 24 }}>
+                <Alert title="שימו לב: אין רכישה ישירה של ZEC בשקלים" tone="warn">
+                  בורסות ישראליות (כמו <Ltr>Bit2C</Ltr> או{' '}
+                  <Ltr>Bits of Gold</Ltr>) אינן תומכות כיום ברכישה ישירה של{' '}
+                  <Ltr>ZEC</Ltr> עקב מגבלות רגולטוריות. הדרך הנפוצה עבור
+                  ישראלים היא רכישת מטבע בסיסי (<Ltr>BTC</Ltr> או{' '}
+                  <Ltr>LTC</Ltr>) בשקלים, והמרתו ל-<Ltr>ZEC</Ltr> בבורסות
+                  בינלאומיות או ב-<Ltr>DEX</Ltr>.
+                </Alert>
+              </div>
+
+              {/* Dark exchange grid */}
+              <div
+                style={{
+                  position: 'relative',
+                  borderRadius: 18,
+                  padding: '22px 20px',
+                  background:
+                    'radial-gradient(120% 80% at 0% 0%, rgba(243,177,50,0.05) 0%, transparent 55%), linear-gradient(180deg, #09090B 0%, #0B0B0E 100%)',
+                  border: '1px solid #18181B',
+                  boxShadow:
+                    '0 1px 0 rgba(255,255,255,0.04) inset, 0 20px 60px -30px rgba(0,0,0,0.6)',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    marginBottom: 16,
+                  }}
+                >
+                  <Sparkles size={13} color={AMBER} />
+                  <span
+                    dir="ltr"
+                    style={{
+                      fontFamily: 'var(--font-mono), monospace',
+                      fontSize: '0.62rem',
+                      letterSpacing: '0.14em',
+                      color: '#A1A1AA',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    VERIFIED_ON_RAMPS
+                  </span>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 12,
+                  }}
+                >
+                  {exchanges.map((ex) => (
+                    <ExchangeCard key={ex.name} exchange={ex} />
+                  ))}
+                </div>
               </div>
             </motion.section>
 
@@ -472,12 +771,17 @@ export default function IsraelContextPage() {
               transition={{ duration: 0.4 }}
             >
               <div
-                style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  marginBottom: 6,
+                }}
               >
                 <Scale size={18} color={AMBER} />
                 <h2
                   style={{
-                    fontSize: '1.2rem',
+                    fontSize: '1.25rem',
                     fontWeight: 700,
                     color: '#09090B',
                     letterSpacing: '-0.02em',
@@ -489,69 +793,76 @@ export default function IsraelContextPage() {
               <p
                 style={{
                   color: '#71717A',
-                  fontSize: '0.85rem',
+                  fontSize: '0.88rem',
                   marginBottom: 20,
-                  lineHeight: 1.6,
+                  lineHeight: 1.7,
                 }}
               >
-                המסגרת הרגולטורית של קריפטו בישראל מתפתחת. להלן עיקרי המצב הנוכחי:
+                המסגרת הרגולטורית של קריפטו בישראל מתפתחת. להלן עיקרי המצב
+                הנוכחי:
               </p>
 
               <Alert title="לצרכים חינוכיים בלבד">
-                המידע בעמוד זה הוא כללי ואינפורמטיבי בלבד ואינו מהווה ייעוץ משפטי, פיסקלי
-                או פיננסי. לפני כל פעולה, יש להתייעץ עם עורך דין ו/או רואה חשבון מוסמך
-                הבקיא בדיני המס הישראליים.
+                המידע בעמוד זה הוא כללי ואינפורמטיבי בלבד ואינו מהווה ייעוץ
+                משפטי, פיסקלי או פיננסי. לפני כל פעולה, יש להתייעץ עם עורך דין
+                ו/או רואה חשבון מוסמך הבקיא בדיני המס הישראליים.
               </Alert>
 
               <div
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 16,
+                  gap: 14,
                   marginTop: 24,
                 }}
               >
-                {[
-                  {
-                    title: 'קריפטו כנכס',
-                    content:
-                      'רשות המיסים רואה במטבעות קריפטוגרפיים "נכס" לצרכי מס ולא "מטבע". רווחים ממכירה חייבים במס רווח הון (25% ליחיד).',
-                  },
-                  {
-                    title: 'דיווח חובה',
-                    content:
-                      'ישנה חובת דיווח על הכנסות מקריפטו בדוח השנתי לרשות המיסים. אי-דיווח עלול להוות עבירה פלילית.',
-                  },
-                  {
-                    title: 'Viewing Keys לציות',
-                    content:
-                      'Zcash מאפשר לייצר Viewing Key שחושף את היסטוריית העסקאות לרואה חשבון בלבד — מבלי למסור גישה לכספים.',
-                  },
-                  {
-                    title: 'AML / KYC',
-                    content:
-                      'בורסות ישראליות מחויבות בחוק איסור הלבנת הון. ציות לדרישות KYC של הבורסה הוא חובה חוקית.',
-                  },
-                ].map((item) => (
+                {taxCards.map((item) => (
                   <div
                     key={item.title}
                     style={{
-                      border: '1px solid #E4E4E7',
-                      borderRadius: 8,
-                      padding: '14px 16px',
+                      position: 'relative',
+                      border: item.highlight
+                        ? '1px solid rgba(243,177,50,0.45)'
+                        : '1px solid #E4E4E7',
+                      borderRadius: 10,
+                      padding: '16px 18px',
+                      background: item.highlight
+                        ? 'linear-gradient(180deg, rgba(254,243,199,0.4) 0%, rgba(255,255,255,0.8) 100%)'
+                        : '#FFFFFF',
+                      boxShadow: item.highlight
+                        ? '0 8px 30px -18px rgba(243,177,50,0.3)'
+                        : 'none',
                     }}
                   >
-                    <p
+                    <div
                       style={{
-                        fontWeight: 600,
-                        fontSize: '0.875rem',
-                        color: '#09090B',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
                         marginBottom: 6,
                       }}
                     >
-                      {item.title}
-                    </p>
-                    <p style={{ fontSize: '0.82rem', color: '#71717A', margin: 0, lineHeight: 1.65 }}>
+                      {item.icon}
+                      <p
+                        style={{
+                          fontWeight: 700,
+                          fontSize: '0.9rem',
+                          color: '#09090B',
+                          margin: 0,
+                          letterSpacing: '-0.01em',
+                        }}
+                      >
+                        {item.title}
+                      </p>
+                    </div>
+                    <p
+                      style={{
+                        fontSize: '0.83rem',
+                        color: '#52525B',
+                        margin: 0,
+                        lineHeight: 1.7,
+                      }}
+                    >
                       {item.content}
                     </p>
                   </div>
@@ -559,7 +870,7 @@ export default function IsraelContextPage() {
               </div>
             </motion.section>
 
-            {/* ── Section 3: Updates ── */}
+            {/* ── Section 3: Updates Timeline ── */}
             <motion.section
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -567,12 +878,17 @@ export default function IsraelContextPage() {
               transition={{ duration: 0.4 }}
             >
               <div
-                style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  marginBottom: 6,
+                }}
               >
                 <Newspaper size={18} color={AMBER} />
                 <h2
                   style={{
-                    fontSize: '1.2rem',
+                    fontSize: '1.25rem',
                     fontWeight: 700,
                     color: '#09090B',
                     letterSpacing: '-0.02em',
@@ -584,18 +900,39 @@ export default function IsraelContextPage() {
               <p
                 style={{
                   color: '#71717A',
-                  fontSize: '0.85rem',
+                  fontSize: '0.88rem',
                   marginBottom: 24,
-                  lineHeight: 1.6,
+                  lineHeight: 1.7,
                 }}
               >
-                סיכומים נבחרים ממיסוד <Ltr>Zcash</Ltr>.
+                סיכומים נבחרים ממיסוד <Ltr>Zcash</Ltr> וחברת <Ltr>ECC</Ltr>.
               </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                {updates.map((u) => (
-                  <UpdateCard key={u.title} update={u} />
-                ))}
+
+              {/* Dark timeline container */}
+              <div
+                style={{
+                  position: 'relative',
+                  borderRadius: 18,
+                  padding: '28px 24px 28px 28px',
+                  background:
+                    'radial-gradient(120% 80% at 100% 0%, rgba(243,177,50,0.05) 0%, transparent 55%), linear-gradient(180deg, #09090B 0%, #0B0B0E 100%)',
+                  border: '1px solid #18181B',
+                  boxShadow:
+                    '0 1px 0 rgba(255,255,255,0.04) inset, 0 20px 60px -30px rgba(0,0,0,0.6)',
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {updates.map((u, i) => (
+                    <TimelineItem
+                      key={u.title}
+                      update={u}
+                      index={i}
+                      isLast={i === updates.length - 1}
+                    />
+                  ))}
+                </div>
               </div>
+
               <div style={{ marginTop: 20 }}>
                 <a
                   href="https://zfnd.org/blog"

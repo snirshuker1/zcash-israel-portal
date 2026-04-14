@@ -1,5 +1,21 @@
 import { NextResponse } from "next/server";
 
+// ── Data-source architecture ────────────────────────────────────────────────
+// A single unified ZEC metrics endpoint does not exist. We fan-out to four
+// purpose-specific sources:
+//
+//   Blockchair  — block height, market cap, 24h txs, hashrate, circulation
+//   Binance     — real-time ZEC/USDT price (REST fallback; WS handles client)
+//   zecprice.com /api/shielded-hourly
+//               — shielded pool breakdown (total, Orchard, Sapling, Sprout)
+//                 Also exposes `h` (block height) and `latestBlock`, but
+//                 Blockchair is the primary source for all chain metrics.
+//   CoinGecko   — authoritative circulating supply (in whole ZEC units)
+//
+// zecprice.com was investigated for a unified endpoint; only
+// /api/shielded-hourly exists (404 on /api/price, /api/stats, etc.).
+// ───────────────────────────────────────────────────────────────────────────
+
 const ZATOSHI = BigInt(100_000_000);
 
 // Convert a ZEC float value (up to 8 decimal places) to Zatoshis using BigInt

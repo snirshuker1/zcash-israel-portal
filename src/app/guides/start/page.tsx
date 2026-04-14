@@ -48,6 +48,7 @@ function AccordionItem({
   return (
     <div
       ref={registerRef}
+      className="scroll-mt-24"
       style={{
         border: `1px solid ${isOpen ? '#F3B13240' : '#E4E4E7'}`,
         borderRadius: 10,
@@ -550,7 +551,9 @@ function GuidesStartPageContent() {
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const isInitialMount = useRef(true)
 
-  // Wait for the 0.25s expand/collapse to settle before scrolling so we land on the final layout, not a mid-animation one.
+  // Wait for the 0.25s collapse/expand animation to settle, then smooth-scroll
+  // the newly opened item into view. scroll-mt-24 on each item reserves space
+  // for the sticky navbar so the title lands below it, not underneath it.
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false
@@ -561,17 +564,8 @@ function GuidesStartPageContent() {
     const timeoutId = window.setTimeout(() => {
       const el = itemRefs.current[openItem]
       if (!el) return
-      const prefersReduced =
-        typeof window.matchMedia === 'function' &&
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      const HEADER_OFFSET = 80
-      const targetY =
-        el.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET
-      window.scrollTo({
-        top: Math.max(targetY, 0),
-        behavior: prefersReduced ? 'auto' : 'smooth',
-      })
-    }, 300)
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 280)
 
     return () => window.clearTimeout(timeoutId)
   }, [openItem])

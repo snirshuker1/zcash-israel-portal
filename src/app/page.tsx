@@ -25,13 +25,14 @@ export default function Home() {
               textAlign: "center",
               marginTop: 20,
               fontSize: "0.68rem",
-              color: "#27272a",
+              color: "#f4f4f5",
               fontFamily: "var(--font-mono), monospace",
               letterSpacing: "0.08em",
+              opacity: 0.7,
             }}
             dir="ltr"
           >
-            Data: Blockchair API · CoinGecko · refreshed every 60s
+            Data: Live Market Feed · Real-time
           </p>
         </div>
       </section>

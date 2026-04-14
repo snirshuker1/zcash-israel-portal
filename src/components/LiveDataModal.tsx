@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import useSWR from "swr";
+import RollingPrice from "./RollingPrice";
+import { useLiveZecPrice } from "@/hooks/useLiveZecPrice";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 const AMBER = "#F3B132";
@@ -25,6 +27,7 @@ export default function LiveDataModal({ open, onClose }: Props) {
   const { data: stats } = useSWR(open ? "/api/zcash/stats" : null, fetcher, {
     refreshInterval: 60_000,
   });
+  const { price: livePrice } = useLiveZecPrice(stats?.priceUsd ?? null);
 
   const [tick, setTick] = useState(60);
 
@@ -41,20 +44,58 @@ export default function LiveDataModal({ open, onClose }: Props) {
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  const metrics = [
+  // Scroll lock: freeze the background page while the modal is open.
+  // The position:fixed trick covers iOS Safari which ignores overflow:hidden on body.
+  useEffect(() => {
+    if (!open) return;
+    const scrollY = window.scrollY;
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      window.scrollTo(0, scrollY);
+    };
+  }, [open]);
+
+  const metrics: {
+    id: string;
+    tech: string;
+    he: string;
+    value: React.ReactNode;
+    loading: boolean;
+    glow: string;
+    border: string;
+  }[] = [
     {
       id: "block",
       tech: "BLOCK_HEIGHT",
       he: "גובה בלוק נוכחי",
       value: fmt(stats?.blockHeight ?? null, "block"),
+      loading: !stats,
       glow: "#ffffff18",
       border: "#2a2a2a",
     },
     {
       id: "price",
       tech: "ZEC / USD",
-      he: "מחיר שוק",
-      value: fmt(stats?.priceUsd ?? null, "price"),
+      he: "מחיר שוק · זמן אמת",
+      value:
+        livePrice !== null ? (
+          <RollingPrice
+            value={livePrice}
+            prefix="$"
+            color="#ffffff"
+            fontWeight={800}
+          />
+        ) : (
+          fmt(null, "price")
+        ),
+      loading: livePrice === null && !stats,
       glow: `${AMBER}18`,
       border: `${AMBER}40`,
     },
@@ -63,6 +104,7 @@ export default function LiveDataModal({ open, onClose }: Props) {
       tech: "SHIELDED_POOL",
       he: "ZEC מוצפן (Sapling + Orchard)",
       value: fmt(stats?.shieldedTotal ?? null, "shielded"),
+      loading: !stats,
       glow: "#8b5cf618",
       border: "#8b5cf640",
     },
@@ -254,7 +296,7 @@ export default function LiveDataModal({ open, onClose }: Props) {
                     }}
                     suppressHydrationWarning
                   >
-                    {!stats ? (
+                    {m.loading ? (
                       <motion.span
                         animate={{ opacity: [1, 0.3, 1] }}
                         transition={{ repeat: Infinity, duration: 0.9 }}

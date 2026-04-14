@@ -442,7 +442,7 @@ export default function SupportersSection() {
           }}
         >
           {SUPPORTERS.map((supporter, i) => (
-            <SupporterCard key={supporter.name} supporter={supporter} index={i} />
+            <SupporterCard key={i} supporter={supporter} index={i} />
           ))}
         </div>
 

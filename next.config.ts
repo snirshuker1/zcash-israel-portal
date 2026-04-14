@@ -27,7 +27,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob:",
-      "connect-src 'self' https://api.blockchair.com https://api.binance.com https://api.coingecko.com https://zecprice.com",
+      "connect-src 'self' https://api.blockchair.com https://api.binance.com wss://stream.binance.com:9443 https://api.coingecko.com https://zecprice.com",
       "frame-ancestors 'none'",
     ].join("; "),
   },

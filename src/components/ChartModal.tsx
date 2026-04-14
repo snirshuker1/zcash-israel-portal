@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import {
@@ -15,9 +15,19 @@ import {
   Tooltip,
 } from "recharts";
 import useSWR from "swr";
+import ShieldedPoolGrowthChart from "./ShieldedPoolGrowthChart";
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
-const AMBER = "#F3B132";
+// Throw on HTTP errors and on API-level { error } payloads so SWR correctly
+// surfaces failures in its `error` field instead of silently stashing a
+// { error: "..." } object in `data` (which blanks the chart with no feedback).
+const fetcher = async (url: string) => {
+  const r = await fetch(url);
+  const json = await r.json();
+  if (!r.ok || (json && typeof json === "object" && "error" in json)) {
+    throw new Error(json?.error ?? `HTTP ${r.status}`);
+  }
+  return json;
+};
 
 export type ChartType = "price" | "shielded" | "blocks";
 type Period = "1w" | "1m" | "3m" | "1y" | "all";
@@ -34,6 +44,8 @@ interface Props {
   type: ChartType | null;
   onClose: () => void;
   liveShielded?: { total: number | null; sapling: number | null; orchard: number | null };
+  livePrice?: number | null;
+  circulatingSupply?: number | null;
 }
 
 interface ChartConfig {
@@ -62,9 +74,9 @@ const CONFIGS: Record<ChartType, ChartConfig> = {
   shielded: {
     endpoint: "/api/zcash/shielded-history",
     titleHe: "בריכה מוגנת",
-    subtitleHe: "ZEC בכתובות מוצפנות (Sapling + Orchard)",
+    subtitleHe: "ZEC בכתובות מוצפנות (Sprout + Sapling + Orchard)",
     source: "zecprice.com",
-    dataKey: "zec",
+    dataKey: "total",
     xKey: "date",
     suffix: " ZEC",
     chartKind: "area",
@@ -80,7 +92,7 @@ const CONFIGS: Record<ChartType, ChartConfig> = {
   },
 };
 
-// ─── Tooltip (single-series) ─────────────────────────────────────────────────
+// ─── Tooltip ─────────────────────────────────────────────────────────────────
 function BwTooltip({
   active,
   payload,
@@ -95,6 +107,7 @@ function BwTooltip({
   suffix?: string;
 }) {
   if (!active || !payload?.length) return null;
+  const val = payload[0]?.value;
   return (
     <div
       style={{
@@ -108,103 +121,146 @@ function BwTooltip({
       <p style={{ color: "#666", fontSize: "0.62rem", marginBottom: 4 }}>{label}</p>
       <p style={{ color: "#fff", fontSize: "0.9rem", fontWeight: 600 }}>
         {prefix}
-        {typeof payload[0]?.value === "number"
-          ? payload[0].value.toLocaleString("en-US")
-          : payload[0]?.value}
+        {typeof val === "number" ? val.toLocaleString("en-US") : val}
         {suffix}
       </p>
     </div>
   );
 }
 
-// ─── Tooltip (shielded — multi-series) ───────────────────────────────────────
-function ShieldedTooltip({
-  active,
-  payload,
-  label,
-}: {
-  active?: boolean;
-  payload?: Array<{ dataKey?: string; value?: number }>;
-  label?: string;
-}) {
-  if (!active || !payload?.length) return null;
-  const sapling = payload.find((p) => p.dataKey === "sapling")?.value ?? 0;
-  const orchard = payload.find((p) => p.dataKey === "orchard")?.value ?? 0;
-  const total = sapling + orchard;
-  return (
-    <div
-      style={{
-        background: "#1a1a1a",
-        border: "1px solid #333",
-        borderRadius: 8,
-        padding: "10px 14px",
-        fontFamily: "var(--font-mono), monospace",
-      }}
-    >
-      <p style={{ color: "#666", fontSize: "0.62rem", marginBottom: 6 }}>{label}</p>
-      <p style={{ color: "#fff", fontSize: "0.88rem", fontWeight: 600, marginBottom: 4 }}>
-        {total.toLocaleString("en-US")} ZEC
-      </p>
-      <p style={{ color: "#fff", fontSize: "0.72rem", margin: "2px 0", display: "flex", alignItems: "center", gap: 6 }}>
-        <span style={{ width: 8, height: 8, borderRadius: 2, background: "#fff", display: "inline-block" }} />
-        Orchard: {orchard.toLocaleString("en-US")}
-      </p>
-      <p style={{ color: AMBER, fontSize: "0.72rem", margin: "2px 0", display: "flex", alignItems: "center", gap: 6 }}>
-        <span style={{ width: 8, height: 8, borderRadius: 2, background: AMBER, display: "inline-block" }} />
-        Sapling: {sapling.toLocaleString("en-US")}
-      </p>
-    </div>
-  );
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/** Compute a tight [min, max] domain for the price Y-axis with ~4% padding. */
+function priceDomain(points: Array<{ price: number }>): [number, number] {
+  const vals = points.map((p) => p.price).filter(Number.isFinite);
+  if (vals.length === 0) return [0, 1];
+  const lo = Math.min(...vals);
+  const hi = Math.max(...vals);
+  // If all values are the same (e.g. a single point), create a small range.
+  const span = hi - lo || Math.max(lo * 0.08, 1);
+  const pad = span * 0.08;
+  return [Math.max(0, lo - pad), hi + pad];
+}
+
+/** Y-axis tick label for price values — clean $X / $Xk formatting. */
+function priceTickFmt(v: number): string {
+  if (v >= 1000) return `$${(v / 1000).toFixed(1)}k`;
+  if (v >= 10) return `$${Math.round(v)}`;
+  return `$${v.toFixed(2)}`;
+}
+
+/** X-axis tick formatter — single format for all periods: "Apr 26". */
+function xTickFmt(value: string): string {
+  if (value === "Live") return "Live";
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
 }
 
 // ─── Main modal ───────────────────────────────────────────────────────────────
-export default function ChartModal({ type, onClose, liveShielded }: Props) {
+export default function ChartModal({ type, onClose, liveShielded, livePrice, circulatingSupply }: Props) {
   const [period, setPeriod] = useState<Period>("1y");
 
-  const config = type ? CONFIGS[type] : null;
-  const endpoint = config ? `${config.endpoint}?period=${period}` : null;
-  const { data, isLoading, error } = useSWR(endpoint, fetcher);
+  // Holds the last successfully fetched dataset for the current chart type so
+  // we can keep the old data visible while the next period's fetch is in flight
+  // (prevents the "blank chart / loading text flicker" on period switches).
+  const [displayed, setDisplayed] = useState<{ type: ChartType; data: unknown[] } | null>(null);
+  // Bumped each time displayed.data is swapped — drives the fade-in animation key.
+  const [displayKey, setDisplayKey] = useState(0);
+  // Keeps a stable ref to the current type so effects can compare without
+  // needing to add `type` to dependency arrays that only care about `data`.
+  const typeRef = useRef(type);
 
-  // Reset period when a new chart type opens (shielded defaults to "all")
+  const config = type ? CONFIGS[type] : null;
+  // "shielded" is handled entirely by ShieldedPoolGrowthChart — skip the fetch.
+  const endpoint =
+    config && type !== "shielded" ? `${config.endpoint}?period=${period}` : null;
+
+  const { data, isLoading, error } = useSWR(endpoint, fetcher, {
+    shouldRetryOnError: false, // don't hammer CoinGecko on rate-limit / auth errors
+  });
+
+  // Reset period when a new chart type opens.
   useEffect(() => {
     if (type) setPeriod(type === "shielded" ? "all" : "1y");
   }, [type]);
 
-  // Close on Escape
+  // Close on Escape.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
+  // Scroll lock: hide overflow while the modal is open.
+  // We intentionally avoid the position:fixed + top trick — that approach
+  // resets the paint position and causes a visible jump even with scrollY
+  // compensation. Instead, scrollbar-gutter:stable both-edges (set on <html>
+  // in globals.css) permanently reserves the scrollbar lane, so toggling
+  // overflow:hidden never shifts the layout width and no jump occurs.
+  useEffect(() => {
+    if (!type) return;
+    const scrollY = window.scrollY;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+      // Restore scroll in the rare case a browser resets it when overflow is cleared.
+      if (window.scrollY !== scrollY) window.scrollTo(0, scrollY);
+    };
+  }, [type]);
+
+  // When a new valid dataset arrives, store it and bump the fade key.
+  // Intentionally only depends on `data`: we want this to fire when SWR resolves,
+  // not on every type/period change (those are handled by the clear effect below).
+  useEffect(() => {
+    if (typeRef.current && Array.isArray(data) && data.length > 0) {
+      setDisplayed({ type: typeRef.current, data });
+      setDisplayKey((k) => k + 1);
+    }
+  }, [data]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // When the chart TYPE changes, clear the stale display immediately so we
+  // don't flash price bars inside the blocks chart (or vice-versa).
+  useEffect(() => {
+    typeRef.current = type;
+    setDisplayed(null);
+  }, [type]);
+
   const axisStyle = {
-    fontSize: "0.6rem",
-    fill: "#555",
+    fontSize: 11,
+    fill: "#71717a",
     fontFamily: "var(--font-mono), monospace",
   };
 
-  function renderChart() {
-    if (!config || !data || data.error) return null;
+  function renderChart(chartData: unknown[]) {
+    if (!config || chartData.length === 0) return null;
 
     const gradId = `bwgrad-${type}`;
-    const commonProps = { data, margin: { top: 10, right: 10, left: 0, bottom: 0 } };
+    const commonProps = { data: chartData, margin: { top: 10, right: 10, left: 0, bottom: 0 } };
 
-    const xAxis = (
-      <XAxis dataKey={config.xKey} tick={axisStyle} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+    const sharedXAxis = (
+      <XAxis
+        dataKey={config.xKey}
+        tick={axisStyle}
+        axisLine={false}
+        tickLine={false}
+        minTickGap={60}
+        tickFormatter={xTickFmt}
+        padding={{ left: 10, right: 20 }}
+        height={30}
+      />
     );
-    const yAxis = (
+    const sharedYAxis = (
       <YAxis
         tick={axisStyle}
         axisLine={false}
         tickLine={false}
         width={60}
         tickFormatter={(v: number) =>
-          config.prefix
-            ? `${config.prefix}${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`
-            : v >= 1_000_000
+          v >= 1_000_000
             ? `${(v / 1_000_000).toFixed(1)}M`
             : v >= 1000
-            ? `${(v / 1000).toFixed(0)}k`
+            ? `${(v / 1000).toFixed(1)}K`
             : String(v)
         }
       />
@@ -217,69 +273,83 @@ export default function ChartModal({ type, onClose, liveShielded }: Props) {
       />
     );
 
+    // ── Blocks chart ─────────────────────────────────────────────────────────
     if (config.chartKind === "bar") {
       return (
         <BarChart {...commonProps}>
-          {grid}{xAxis}{yAxis}{tooltip}
-          <Bar dataKey={config.dataKey} fill="#ffffff" opacity={0.85} radius={[3, 3, 0, 0]} />
+          {grid}
+          {sharedXAxis}
+          {sharedYAxis}
+          {tooltip}
+          <Bar
+            dataKey={config.dataKey}
+            fill="#ffffff"
+            opacity={0.85}
+            radius={[3, 3, 0, 0]}
+            isAnimationActive
+            animationDuration={800}
+            animationEasing="ease-in-out"
+          />
         </BarChart>
       );
     }
 
-    // ── Shielded pool: single combined area (Sapling + Orchard) ─────────────
-    if (type === "shielded") {
-      const combined = (data as Array<{ date: string; sapling: number; orchard: number }>).map(
-        (row) => ({ ...row, total: row.sapling + row.orchard })
-      );
-      // Overwrite the last point with live values so chart tip matches the metric card
-      if (
-        combined.length > 0 &&
-        liveShielded?.sapling != null &&
-        liveShielded?.orchard != null
-      ) {
-        const last = combined[combined.length - 1];
-        combined[combined.length - 1] = {
-          ...last,
-          sapling: liveShielded.sapling,
-          orchard: liveShielded.orchard,
-          total: liveShielded.total ?? liveShielded.sapling + liveShielded.orchard,
-        };
-      }
-      return (
-        <AreaChart {...commonProps} data={combined}>
-          <defs>
-            <linearGradient id="grad-shielded" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#ffffff" stopOpacity={0.15} />
-              <stop offset="95%" stopColor="#ffffff" stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          {grid}{xAxis}{yAxis}
-          <Tooltip
-            content={<BwTooltip suffix=" ZEC" />}
-            cursor={{ stroke: "#555", strokeWidth: 1 }}
-          />
-          <Area
-            type="monotone"
-            dataKey="total"
-            stroke="#ffffff"
-            strokeWidth={1.5}
-            fill="url(#grad-shielded)"
-            dot={false}
-            activeDot={{ r: 4, fill: "#fff", stroke: "#000", strokeWidth: 2 }}
-          />
-        </AreaChart>
-      );
+    // ── Price chart ───────────────────────────────────────────────────────────
+    // Stitch live price as a brand-new FINAL point so the chart has a genuine
+    // "today" slot at the far right. Overwriting the last CoinGecko point keeps
+    // yesterday's date label and leaves the cursor orphaned past it — pushing a
+    // new entry creates a real rightmost slot that the tooltip can land on.
+    let areaData = [...(chartData as Array<{ date: string; price: number }>)];
+    if (type === "price" && livePrice != null) {
+      // Unique label so Recharts allocates a distinct categorical X-axis slot.
+      areaData = [...areaData, { date: "Live", price: Math.round(livePrice * 100) / 100 }];
     }
 
+    // Tight domain: Y-axis hugs the actual data range for the selected period.
+    const [domainMin, domainMax] = priceDomain(areaData);
+
+    // padding.right nudges the plot area inward so the "Live" point lands
+    // fully inside the chart — without it the rightmost categorical slot is
+    // flush with the container edge and half its hover band is clipped.
+    const priceXAxis = (
+      <XAxis
+        dataKey={config.xKey}
+        tick={axisStyle}
+        axisLine={false}
+        tickLine={false}
+        minTickGap={60}
+        tickFormatter={xTickFmt}
+        padding={{ left: 10, right: 30 }}
+        height={30}
+      />
+    );
+
+    const priceYAxis = (
+      <YAxis
+        tick={axisStyle}
+        axisLine={false}
+        tickLine={false}
+        width={60}
+        domain={[domainMin, domainMax]}
+        tickFormatter={priceTickFmt}
+      />
+    );
+
     return (
-      <AreaChart {...commonProps}>
+      <AreaChart {...commonProps} data={areaData}>
         <defs>
           <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor="#ffffff" stopOpacity={0.15} />
             <stop offset="95%" stopColor="#ffffff" stopOpacity={0} />
           </linearGradient>
         </defs>
-        {grid}{xAxis}{yAxis}{tooltip}
+        {grid}
+        {priceXAxis}
+        {priceYAxis}
+        <Tooltip
+          content={<BwTooltip prefix={config.prefix} suffix={config.suffix} />}
+          cursor={{ stroke: "#555", strokeWidth: 1 }}
+        />
         <Area
           type="monotone"
           dataKey={config.dataKey}
@@ -287,7 +357,10 @@ export default function ChartModal({ type, onClose, liveShielded }: Props) {
           strokeWidth={1.5}
           fill={`url(#${gradId})`}
           dot={false}
-          activeDot={{ r: 4, fill: "#fff", stroke: "#000", strokeWidth: 2 }}
+          activeDot={{ r: 5, fill: "#fff", stroke: "#000", strokeWidth: 2 }}
+          isAnimationActive
+          animationDuration={800}
+          animationEasing="ease-in-out"
         />
       </AreaChart>
     );
@@ -325,178 +398,319 @@ export default function ChartModal({ type, onClose, liveShielded }: Props) {
               pointerEvents: "none",
             }}
           >
-          <motion.div
-            key="panel"
-            initial={{ opacity: 0, y: 32, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 32, scale: 0.97 }}
-            transition={{ type: "spring", stiffness: 320, damping: 28 }}
-            style={{
-              pointerEvents: "auto",
-              width: "min(94vw, 1040px)",
-              background: "#0a0a0a",
-              border: "1px solid #222",
-              borderRadius: 20,
-              padding: "32px 36px 28px",
-              boxShadow: "0 32px 80px rgba(0,0,0,0.9)",
-            }}
-          >
-            {/* Header row */}
-            <div
+            <motion.div
+              key="panel"
+              initial={{ opacity: 0, y: 32, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 32, scale: 0.97 }}
+              transition={{ type: "spring", stiffness: 320, damping: 28 }}
               style={{
-                display: "flex",
-                alignItems: "flex-start",
-                justifyContent: "space-between",
-                marginBottom: 24,
+                pointerEvents: "auto",
+                width: "min(94vw, 1040px)",
+                background: "#0a0a0a",
+                border: "1px solid #222",
+                borderRadius: 20,
+                padding: "32px 36px 28px",
+                boxShadow: "0 32px 80px rgba(0,0,0,0.9)",
               }}
-              dir="rtl"
             >
-              <div>
-                <h2
-                  style={{
-                    color: "#ffffff",
-                    fontSize: "1.2rem",
-                    fontWeight: 700,
-                    fontFamily: "var(--font-sans), system-ui, sans-serif",
-                    marginBottom: 4,
-                  }}
-                >
-                  {config?.titleHe}
-                </h2>
-                <p
-                  style={{
-                    color: "#555",
-                    fontSize: "0.78rem",
-                    fontFamily: "var(--font-mono), monospace",
-                  }}
-                >
-                  {config?.subtitleHe}
-                </p>
-              </div>
-              <button
-                onClick={onClose}
+              {/* Header row */}
+              <div
                 style={{
-                  background: "#1a1a1a",
-                  border: "1px solid #2a2a2a",
-                  borderRadius: 8,
-                  padding: "6px 8px",
-                  cursor: "pointer",
-                  color: "#888",
                   display: "flex",
-                  alignItems: "center",
-                  transition: "color 0.15s",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  marginBottom: 24,
                 }}
-                onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#fff")}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "#888")}
+                dir="rtl"
               >
-                <X size={16} />
-              </button>
-            </div>
-
-            {/* Timeframe tabs */}
-            <div
-              style={{
-                display: "flex",
-                gap: 6,
-                marginBottom: 20,
-              }}
-              dir="ltr"
-            >
-              {PERIODS.map((p) => (
+                <div>
+                  <h2
+                    style={{
+                      color: "#ffffff",
+                      fontSize: "1.2rem",
+                      fontWeight: 700,
+                      fontFamily: "var(--font-sans), system-ui, sans-serif",
+                      marginBottom: 4,
+                    }}
+                  >
+                    {config?.titleHe}
+                  </h2>
+                  <p
+                    style={{
+                      color: "#555",
+                      fontSize: "0.78rem",
+                      fontFamily: "var(--font-mono), monospace",
+                    }}
+                  >
+                    {config?.subtitleHe}
+                  </p>
+                </div>
                 <button
-                  key={p.key}
-                  onClick={() => setPeriod(p.key)}
+                  onClick={onClose}
                   style={{
-                    padding: "5px 14px",
-                    borderRadius: 6,
-                    border: "1px solid",
-                    borderColor: period === p.key ? "#ffffff" : "#2a2a2a",
-                    background: period === p.key ? "#ffffff" : "transparent",
-                    color: period === p.key ? "#000000" : "#555",
-                    fontFamily: "var(--font-mono), monospace",
-                    fontSize: "0.7rem",
-                    fontWeight: 600,
-                    letterSpacing: "0.05em",
+                    background: "#1a1a1a",
+                    border: "1px solid #2a2a2a",
+                    borderRadius: 8,
+                    padding: "6px 8px",
                     cursor: "pointer",
-                    transition: "all 0.15s",
+                    color: "#888",
+                    display: "flex",
+                    alignItems: "center",
+                    transition: "color 0.15s",
                   }}
-                  onMouseEnter={(e) => {
-                    if (period !== p.key) {
-                      (e.currentTarget as HTMLElement).style.borderColor = "#555";
-                      (e.currentTarget as HTMLElement).style.color = "#ccc";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (period !== p.key) {
-                      (e.currentTarget as HTMLElement).style.borderColor = "#2a2a2a";
-                      (e.currentTarget as HTMLElement).style.color = "#555";
-                    }
-                  }}
+                  onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "#fff")}
+                  onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "#888")}
                 >
-                  {p.label}
+                  <X size={16} />
                 </button>
-              ))}
-            </div>
+              </div>
 
-            {/* Chart area */}
-            <div style={{ height: 360 }}>
-              {isLoading && (
+              {/* Live summary metrics */}
+              {type === "price" && livePrice != null && (
                 <div
-                  style={{
-                    height: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#444",
-                    fontFamily: "var(--font-mono), monospace",
-                    fontSize: "0.75rem",
-                    letterSpacing: "0.1em",
-                  }}
+                  style={{ marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}
+                  dir="ltr"
                 >
-                  טוען נתונים...
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono), monospace",
+                      fontSize: "2.4rem",
+                      fontWeight: 700,
+                      color: "#ffffff",
+                      letterSpacing: "-0.03em",
+                      lineHeight: 1,
+                    }}
+                  >
+                    ${livePrice.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                  <span
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 5,
+                      padding: "3px 8px",
+                      borderRadius: 4,
+                      background: "#071407",
+                      border: "1px solid #1a3a1a",
+                    }}
+                  >
+                    <span className="live-dot" data-state="on" style={{ width: 5, height: 5 }} aria-hidden />
+                    <span
+                      style={{
+                        fontFamily: "var(--font-mono), monospace",
+                        fontSize: "0.6rem",
+                        color: "#4ade80",
+                        letterSpacing: "0.12em",
+                        fontWeight: 600,
+                      }}
+                    >
+                      LIVE
+                    </span>
+                  </span>
                 </div>
               )}
-              {error && (
+
+              {type === "shielded" && liveShielded?.total != null && (
                 <div
+                  dir="ltr"
                   style={{
-                    height: "100%",
+                    marginBottom: 20,
                     display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#666",
-                    fontFamily: "var(--font-mono), monospace",
-                    fontSize: "0.75rem",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    gap: 6,
                   }}
                 >
-                  שגיאה בטעינת נתונים
+                  {/* Primary: total shielded ZEC */}
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-mono), monospace",
+                        fontSize: "2.2rem",
+                        fontWeight: 700,
+                        color: "#ffffff",
+                        letterSpacing: "-0.03em",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {Math.round(liveShielded.total).toLocaleString("en-US")}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-mono), monospace",
+                        fontSize: "1rem",
+                        color: "#555",
+                        fontWeight: 400,
+                      }}
+                    >
+                      ZEC
+                    </span>
+                  </div>
+
+                  {/* Secondary: Hebrew text left, number right — RTL reader hits number first */}
+                  {circulatingSupply != null && (
+                    <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 8 }}>
+                      <span
+                        style={{
+                          fontFamily: "var(--font-sans), system-ui, sans-serif",
+                          fontSize: "0.78rem",
+                          color: "#a1a1aa",
+                        }}
+                      >
+                        מהיצע המחזור מוצפן
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "var(--font-mono), monospace",
+                          fontSize: "0.78rem",
+                          fontWeight: 600,
+                          color: "#a1a1aa",
+                        }}
+                      >
+                        {((liveShielded.total / circulatingSupply) * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
-              {!isLoading && data && !data.error && (
-                <ResponsiveContainer width="100%" height="100%">
-                  {renderChart() as React.ReactElement}
-                </ResponsiveContainer>
-              )}
-            </div>
 
-            {/* Footer */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginTop: 16,
-                fontSize: "0.62rem",
-                fontFamily: "var(--font-mono), monospace",
-                color: "#333",
-              }}
-              dir="ltr"
-            >
-              <span>
-                מקור: <span style={{ color: "#555" }}>{config?.source}</span>
-              </span>
-              <span>● LIVE · עודכן אוטומטית</span>
-            </div>
-          </motion.div>
+              {/* Timeframe tabs — hidden for shielded (ShieldedPoolGrowthChart owns its data) */}
+              {type !== "shielded" && (
+                <div style={{ display: "flex", gap: 6, marginBottom: 20 }} dir="ltr">
+                  {PERIODS.map((p) => (
+                    <button
+                      key={p.key}
+                      onClick={() => setPeriod(p.key)}
+                      style={{
+                        padding: "5px 14px",
+                        borderRadius: 6,
+                        border: "1px solid",
+                        borderColor: period === p.key ? "#ffffff" : "#2a2a2a",
+                        background: period === p.key ? "#ffffff" : "transparent",
+                        color: period === p.key ? "#000000" : "#555",
+                        fontFamily: "var(--font-mono), monospace",
+                        fontSize: "0.7rem",
+                        fontWeight: 600,
+                        letterSpacing: "0.05em",
+                        cursor: "pointer",
+                        transition: "all 0.15s",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (period !== p.key) {
+                          (e.currentTarget as HTMLElement).style.borderColor = "#555";
+                          (e.currentTarget as HTMLElement).style.color = "#ccc";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (period !== p.key) {
+                          (e.currentTarget as HTMLElement).style.borderColor = "#2a2a2a";
+                          (e.currentTarget as HTMLElement).style.color = "#555";
+                        }
+                      }}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Chart area */}
+              <div style={{ height: 360, position: "relative" }}>
+                {type === "shielded" ? (
+                  <ShieldedPoolGrowthChart compact liveTotal={liveShielded?.total} />
+                ) : (
+                  <>
+                    {/* ── Primary: render chart using stable `displayed` data so the
+                        previous period stays visible while the next fetch is in flight.
+                        The motion.div key changes only when new data is committed, which
+                        triggers a smooth opacity fade-in rather than a hard snap. ── */}
+                    {displayed?.type === type && displayed.data.length > 0 && (() => {
+                      const chartEl = renderChart(displayed.data);
+                      if (!chartEl) return null;
+                      return (
+                        <motion.div
+                          key={displayKey}
+                          initial={{ opacity: 0.65 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.45, ease: "easeOut" }}
+                          style={{ width: "100%", height: "100%", position: "relative" }}
+                        >
+                          <ResponsiveContainer width="100%" height="100%">
+                            {chartEl as React.ReactElement}
+                          </ResponsiveContainer>
+                          {/* Subtle in-flight indicator — doesn't blank the chart */}
+                          {isLoading && (
+                            <span
+                              style={{
+                                position: "absolute",
+                                bottom: 6,
+                                right: 8,
+                                color: "#444",
+                                fontFamily: "var(--font-mono), monospace",
+                                fontSize: "0.6rem",
+                                letterSpacing: "0.15em",
+                              }}
+                            >
+                              ···
+                            </span>
+                          )}
+                        </motion.div>
+                      );
+                    })()}
+
+                    {/* ── Fallback states: only shown when there is no prior data to
+                        display (i.e. the very first load for this chart type). ── */}
+                    {(!displayed || displayed.type !== type) && isLoading && (
+                      <div
+                        style={{
+                          height: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#444",
+                          fontFamily: "var(--font-mono), monospace",
+                          fontSize: "0.75rem",
+                          letterSpacing: "0.1em",
+                        }}
+                      >
+                        טוען נתונים...
+                      </div>
+                    )}
+                    {(!displayed || displayed.type !== type) && error && !isLoading && (
+                      <div
+                        style={{
+                          height: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#666",
+                          fontFamily: "var(--font-mono), monospace",
+                          fontSize: "0.75rem",
+                        }}
+                      >
+                        שגיאה בטעינת נתונים
+                      </div>
+                    )}
+                    {(!displayed || displayed.type !== type) && !isLoading && !error && Array.isArray(data) && data.length === 0 && (
+                      <div
+                        style={{
+                          height: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#444",
+                          fontFamily: "var(--font-mono), monospace",
+                          fontSize: "0.75rem",
+                        }}
+                      >
+                        אין נתונים זמינים
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </motion.div>
           </div>
         </>
       )}
